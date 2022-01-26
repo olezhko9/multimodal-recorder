@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js"></script>
+</head>
+<body>
+<h1> Chat room</h1>
+<script type="text/javascript" charset="utf-8">
+    var socket = io();
+    socket.on('connect', function() {
+        socket.emit('custom_event', {data: "Browser connected!" });
+    });
+
+    socket.on('new_number', (data) => {
+        console.log(data);
+    })
+</script>
+</body>
+</html>
