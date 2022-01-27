@@ -1,13 +1,11 @@
-from random import random
+import time
 
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
+from eeg_board import EEGBoard
+from flask import Flask, Response, render_template
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
-
-socketio = SocketIO(app, async_mode=None)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -15,17 +13,27 @@ def home():
     return render_template("index.html")
 
 
-@socketio.on('custom_event')
-def handle_custom_event(json):
-    print('received event: ' + str(json))
+@app.route("/stream")
+def eeg_stream():
+    def stream_board_data():
+        board = EEGBoard()
+        board.start()
+        event = "eeg_update"
 
+        buffer_last_seconds = 2
+        buffer_size = buffer_last_seconds * board.sampling_rate
+        updates_per_second = 5
 
-@socketio.on('connect')
-def connected():
-    print('Client connected')
-    number = round(random() * 10, 3)
-    emit('new_number', {'number': number})
+        while True:
+            time.sleep(1 / updates_per_second)
+            data = board.get_data()
+            if len(data[0]) != 0:
+                print(len(data), len(data[0]))
+                data = data[-buffer_size:]
+                yield f"event:{event}\ndata:{data.tolist()}\n\n"
+
+    return Response(stream_board_data(), mimetype="text/event-stream")
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    app.run(debug=True)
