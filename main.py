@@ -1,16 +1,14 @@
 import time
 
 from eeg_board import EEGBoard
-from flask import Flask, Response, render_template
+from flask import Flask, Response
+from flask_cors import CORS
+from cv2 import cv2
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
-
-
-@app.route("/", methods=["GET", "POST"])
-def home():
-    return render_template("index.html")
+CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000"]}})
 
 
 @app.route("/stream")
@@ -33,6 +31,24 @@ def eeg_stream():
                 yield f"event:{event}\ndata:{data.tolist()}\n\n"
 
     return Response(stream_board_data(), mimetype="text/event-stream")
+
+
+@app.route("/camera_stream")
+def camera_stream():
+    camera = cv2.VideoCapture(0)
+
+    def gen_frames():
+        while True:
+            success, frame = camera.read()
+            if not success:
+                break
+            else:
+                ret, buffer = cv2.imencode('.jpg', frame)
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == "__main__":
