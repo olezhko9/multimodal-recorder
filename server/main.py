@@ -4,15 +4,14 @@ import json
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 
-from devices import get_device_class
+from devices import DeviceManager
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
 CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localhost:3000"]}})
 
-
-research_devices = {}
+device_manager = DeviceManager()
 
 
 @app.route("/devices")
@@ -28,25 +27,14 @@ def start_record():
         for device in request_devices:
             device_id = device['id']
 
-            DeviceClass = get_device_class(device_id)
-            if DeviceClass is None:
-                return f"Invalid device id [{device_id}]", 500
-            else:
-                device_params = {}
-                if device.get('settings'):
-                    for param in device['settings']:
-                        device_params[param['name']] = param['value']
-                print(device_params)
-                research_devices[device_id] = DeviceClass(device_params)
-                research_devices[device_id].start_record()
-    except Exception:
-        for device_id in list(research_devices):
-            try:
-                research_devices[device_id].stop_record()
-            except Exception:
-                pass
-            research_devices.pop(device_id, None)
+            device_params = {}
+            if device.get('settings'):
+                for param in device['settings']:
+                    device_params[param['name']] = param['value']
 
+            device_manager.add_and_run_device(device_id, device_params)
+    except Exception:
+        device_manager.stop_and_remove_devices()
         return "Error when trying to connect to device", 500
 
     return jsonify(True)
@@ -64,10 +52,7 @@ def unpause_record():
 
 @app.route("/record/stop", methods=['POST'])
 def stop_record():
-    for device_id in list(research_devices):
-        research_devices[device_id].stop_record()
-        research_devices.pop(device_id, None)
-
+    device_manager.stop_and_remove_devices()
     return jsonify(True)
 
 
@@ -75,7 +60,7 @@ def stop_record():
 def stream():
     device_id = request.args.get('device')
 
-    device = research_devices.get(device_id)
+    device = device_manager.get_device(device_id)
     mimetype = 'text/event-stream'
 
     if device is None:
