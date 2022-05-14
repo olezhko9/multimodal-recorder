@@ -56,7 +56,7 @@ export default {
 }
 
 .container {
-  padding-top: 2rem;
+  padding: 2.5rem 0;
 }
 
 .statusbar {

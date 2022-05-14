@@ -12,6 +12,7 @@ export default {
   data() {
     return {
       plotlyLoaded: false,
+      sse: null
     }
   },
 
@@ -47,23 +48,23 @@ export default {
         Plotly.newPlot(graph, traces, layout);
 
         let sseOpenedOnce = false
-        let sse = new EventSource("http://localhost:5000/stream?device=openbci_cython")
+        this.sse = new EventSource("http://localhost:5000/stream?device=openbci_cython")
 
-        sse.onopen = function () {
+        this.sse.onopen = function () {
           console.log('sse open')
           if (sseOpenedOnce) {
-            sse.close()
+            this.sse.close()
           }
           sseOpenedOnce = true
         }
 
-        sse.onerror = function() {
+        this.sse.onerror = function() {
           console.log('sse error')
-          sse.close()
-          sse = null
+          this.sse.close()
+          this.sse = null
         }
 
-        sse.addEventListener("upd", function (event) {
+        this.sse.addEventListener("upd", function (event) {
           let eegData = JSON.parse(event.data);
 
           const n = 250 * 3
@@ -94,6 +95,14 @@ export default {
         }
       ]
     }
+  },
+
+  beforeRouteLeave(to, from, next) {
+    if (this.sse) {
+      this.sse.close()
+      this.sse = null
+    }
+    next()
   }
 }
 </script>

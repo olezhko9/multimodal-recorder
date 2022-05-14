@@ -7,7 +7,6 @@
       <b-tab-item label="Устройства">
         <b-field label="Добавить устройство">
           <b-select
-            :value="selectDevice"
             placeholder="Выбрать устройство"
             expanded
             @input="onDeviceSelect">
@@ -23,15 +22,23 @@
         <div v-if="selectedDevices.length" class="mb-4">
           <span class="label">Выбранные устройства</span>
           <div
-            v-for="device in selectedDevices"
+            v-for="(device, index) in selectedDevices"
             :key="device.id"
             class="box device-card">
             <div class="device-card__header">
               {{ device.name }}
             </div>
             <div class="device-card__buttons">
-              <b-button type="is-primary" icon-left="cog" @click="modalDevice = device"></b-button>
-              <b-button type="is-danger" icon-left="delete"></b-button>
+              <b-button
+                type="is-primary"
+                icon-left="cog"
+                @click="modalDevice = device">
+              </b-button>
+              <b-button
+                type="is-danger"
+                icon-left="delete"
+                @click="removeSelectedDevice(index)">
+              </b-button>
             </div>
           </div>
         </div>
@@ -50,7 +57,17 @@
               </header>
               <section class="modal-card-body">
                 <b-field v-for="setting in modalDevice.settings" :key="setting.name" :label="setting.label">
-                  <b-input v-model="setting.value" expanded></b-input>
+                  <b-select
+                    v-if="setting.type === 'select'"
+                    v-model="setting.value"
+                    expanded>
+                    <option v-for="opt in setting.options" :value="opt">{{ opt }}</option>
+                  </b-select>
+                  <b-input
+                    v-else
+                    v-model="setting.value"
+                    expanded>
+                  </b-input>
                 </b-field>
               </section>
               <footer class="modal-card-foot">
@@ -82,6 +99,7 @@
 
 <script>
 import { mapMutations } from 'vuex'
+import { notifyAfter } from "~/modules/notification-decorators"
 
 export default {
   name: "index",
@@ -110,7 +128,7 @@ export default {
   },
 
   async mounted() {
-    this.devices = await this.$axios.$get("http://127.0.0.1:5000/devices")
+    this.devices = await this.$axios.$get("/devices")
   },
 
   methods: {
@@ -127,29 +145,31 @@ export default {
       }
     },
 
+    @notifyAfter('Запись начата')
     async startRecord() {
-      const result = await this.$axios.$post("http://127.0.0.1:5000/record/start", this.selectedDevices)
+      const result = await this.$axios.$post("/record/start", this.selectedDevices)
       if (result === true) {
         this.readyState = 'ACTIVE'
       }
+      return result
     },
 
     async pauseRecord() {
-      const result = await this.$axios.$post("http://127.0.0.1:5000/record/pause", {})
+      const result = await this.$axios.$post("/record/pause", {})
       if (result === true) {
         this.readyState = 'PAUSED'
       }
     },
 
     async unpauseRecord() {
-      const result = await this.$axios.$post("http://127.0.0.1:5000/record/unpause", {})
+      const result = await this.$axios.$post("/record/unpause", {})
       if (result === true) {
         this.readyState = 'ACTIVE'
       }
     },
 
     async stopRecord() {
-      const result = await this.$axios.$post("http://127.0.0.1:5000/record/stop", {})
+      const result = await this.$axios.$post("/record/stop", {})
       if (result === true) {
         this.readyState = 'STOPPED'
       }
@@ -157,6 +177,10 @@ export default {
 
     closeSettingsModal() {
       this.modalDevice = null
+    },
+
+    removeSelectedDevice(deviceIndex) {
+      this.selectedDevices.splice(deviceIndex, 1)
     }
   }
 }
