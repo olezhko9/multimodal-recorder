@@ -1,6 +1,6 @@
 import json
 
-from .eeg_board import EEGBoard
+from .openbci import OpenBCIBoard
 from .camera import Camera
 
 all_devices = []

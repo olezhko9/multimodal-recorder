@@ -6,18 +6,23 @@ from utils.logger import logging
 from .device import Device
 
 
-class EEGBoard(Device):
-    def __init__(self):
+class OpenBCIBoard(Device):
+    default_port = "/dev/ttyUSB0"
+
+    def __init__(self, options):
         super().__init__()
         BoardShim.enable_dev_board_logger()
-        # self.pause_flag = threading.Event()
 
-        # use synthetic board for demo
-        port = "/dev/ttyUSB0"
+        port = options.get('port') or OpenBCIBoard.default_port
         params = BrainFlowInputParams()
         params.serial_port = port
-        self.board_id = BoardIds.SYNTHETIC_BOARD.value
-        # self.board_id = BoardIds.CYTON_DAISY_BOARD.value
+
+        board_type = options.get('board_type')
+        if board_type == 'Cyton':
+            self.board_id = BoardIds.CYTON_DAISY_BOARD.value
+        elif board_type == 'Synthetic':  # use synthetic board for demo
+            self.board_id = BoardIds.SYNTHETIC_BOARD.value
+
         self.board = BoardShim(self.board_id, params)
 
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
@@ -27,11 +32,12 @@ class EEGBoard(Device):
 
     def start_record(self):
         logging.info("Board start")
-        # self.pause_flag.set()
         if not self.board.is_prepared():
             self.board.prepare_session()
             self.board.start_stream()
             BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
+
+        super(OpenBCIBoard, self).start_record()
 
     def run(self):
         pass
@@ -41,12 +47,10 @@ class EEGBoard(Device):
 
     def pause_record(self):
         logging.info("Board pause")
-        # self.pause_flag.clear()
-        # self.board.stop_stream()
 
     def stop_record(self):
         logging.info("Board stop")
-        # self.pause_flag.clear()
+        super(OpenBCIBoard, self).stop_record()
         try:
             self.board.stop_stream()
         except BrainFlowError:
@@ -59,7 +63,7 @@ class EEGBoard(Device):
 
 
 if __name__ == '__main__':
-    board = EEGBoard()
+    board = OpenBCIBoard({})
     board.start()
     sleep(2)
     data = board.get_data()

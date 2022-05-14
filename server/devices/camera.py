@@ -1,19 +1,22 @@
 from cv2 import cv2
 from .device import Device
 
+from utils.logger import logging
+
 
 class Camera(Device):
     default_width = 600
     default_height = 450
 
-    def __init__(self):
+    def __init__(self, options):
         super().__init__()
         self.cap = None
-        self.width = Camera.default_width
-        self.height = Camera.default_height
+        self.width = options.get('width') or Camera.default_width
+        self.height = options.get('height') or Camera.default_height
         self.last_frame = None
 
     def start_record(self):
+        logging.info("Camera start")
         if self.cap is None or not self.cap.isOpened():
             self.cap = cv2.VideoCapture(0)
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
@@ -35,6 +38,7 @@ class Camera(Device):
         pass
 
     def stop_record(self):
+        logging.info("Camera stop")
         super(Camera, self).stop_record()
 
         if self.cap is not None:

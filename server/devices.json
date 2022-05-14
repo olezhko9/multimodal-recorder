@@ -28,8 +28,8 @@
         "type": "select",
         "name": "board_type",
         "label": "Тип устройства",
-        "options": ["Cython"],
-        "default": "Cython"
+        "options": ["Cyton", "Synthetic"],
+        "default": "Synthetic"
       },
       {
         "type": "string",
@@ -38,6 +38,6 @@
         "default": "/dev/ttyUSB0"
       }
     ],
-    "class": "EEGBoard"
+    "class": "OpenBCIBoard"
   }
 ]

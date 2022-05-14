@@ -22,33 +22,48 @@ def devices():
 
 
 @app.route("/record/start", methods=['POST'])
-def startRecord():
+def start_record():
     request_devices = request.json
-    for device in request_devices:
-        device_id = device['id']
+    try:
+        for device in request_devices:
+            device_id = device['id']
 
-        DeviceClass = get_device_class(device_id)
-        if DeviceClass is None:
-            return f"Invalid device id [{device_id}]", 500
-        else:
-            research_devices[device_id] = DeviceClass()
-            research_devices[device_id].start_record()
+            DeviceClass = get_device_class(device_id)
+            if DeviceClass is None:
+                return f"Invalid device id [{device_id}]", 500
+            else:
+                device_params = {}
+                if device.get('settings'):
+                    for param in device['settings']:
+                        device_params[param['name']] = param['value']
+                print(device_params)
+                research_devices[device_id] = DeviceClass(device_params)
+                research_devices[device_id].start_record()
+    except Exception:
+        for device_id in list(research_devices):
+            try:
+                research_devices[device_id].stop_record()
+            except Exception:
+                pass
+            research_devices.pop(device_id, None)
+
+        return "Error when trying to connect to device", 500
 
     return jsonify(True)
 
 
 @app.route("/record/pause", methods=['POST'])
-def pauseRecord():
+def pause_record():
     return jsonify(True)
 
 
 @app.route("/record/unpause", methods=['POST'])
-def unpauseRecord():
+def unpause_record():
     return jsonify(True)
 
 
 @app.route("/record/stop", methods=['POST'])
-def stopRecord():
+def stop_record():
     for device_id in list(research_devices):
         research_devices[device_id].stop_record()
         research_devices.pop(device_id, None)
