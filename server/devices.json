@@ -16,7 +16,8 @@
         "label": "Высота",
         "default": 450
       }
-    ]
+    ],
+    "class": "Camera"
   },
   {
     "id": "openbci_cython",
@@ -36,6 +37,7 @@
         "label": "Порт",
         "default": "/dev/ttyUSB0"
       }
-    ]
+    ],
+    "class": "EEGBoard"
   }
 ]

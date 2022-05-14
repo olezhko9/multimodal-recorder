@@ -4,12 +4,15 @@ import json
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 
-from devices import *
+from devices import get_device_class
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
 CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localhost:3000"]}})
+
+
+research_devices = {}
 
 
 @app.route("/devices")
@@ -20,6 +23,17 @@ def devices():
 
 @app.route("/record/start", methods=['POST'])
 def startRecord():
+    request_devices = request.json
+    for device in request_devices:
+        device_id = device['id']
+
+        DeviceClass = get_device_class(device_id)
+        if DeviceClass is None:
+            return f"Invalid device id [{device_id}]", 500
+        else:
+            research_devices[device_id] = DeviceClass()
+            research_devices[device_id].start_record()
+
     return jsonify(True)
 
 
@@ -35,6 +49,10 @@ def unpauseRecord():
 
 @app.route("/record/stop", methods=['POST'])
 def stopRecord():
+    for device_id in list(research_devices):
+        research_devices[device_id].stop_record()
+        research_devices.pop(device_id, None)
+
     return jsonify(True)
 
 
@@ -42,23 +60,19 @@ def stopRecord():
 def stream():
     device_id = request.args.get('device')
 
-    device = None
+    device = research_devices.get(device_id)
     mimetype = 'text/event-stream'
 
+    if device is None:
+        return 'Invalid device id', 500
+
     if device_id == 'camera':
-        device = Camera()
         mimetype = 'multipart/x-mixed-replace; boundary=frame'
     elif device_id == 'openbci_cython':
-        device = EEGBoard()
         mimetype = 'text/event-stream'
         buffer_last_seconds = 2
         buffer_size = buffer_last_seconds * device.sampling_rate
         updates_per_second = 5
-
-    if device is None:
-        return 'Invalid device', 500
-
-    device.start_record()
 
     def gen_frames():
         while True:
@@ -77,7 +91,6 @@ def stream():
                         yield f"event:{'upd'}\ndata:{data.tolist()}\n\n"
             except GeneratorExit:
                 print(f'Device [{device_id}] stream closed')
-                device.stop_record()
                 return
 
     return Response(gen_frames(), mimetype=mimetype)

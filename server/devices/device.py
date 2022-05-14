@@ -17,6 +17,7 @@ class Device(ABC, threading.Thread):
     def pause_record(self):
         pass
 
+    @abstractmethod
     def stop_record(self):
         self._stop_event.set()
         self.started = False
