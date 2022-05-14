@@ -4,7 +4,7 @@ import json
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 
-from devices import EEGBoard, Camera
+from devices import *
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -39,56 +39,48 @@ def stopRecord():
 
 
 @app.route("/stream")
-def eeg_stream():
-    def stream_board_data():
-        board = EEGBoard()
-        board.start_record()
-        event = "eeg_update"
+def stream():
+    device_id = request.args.get('device')
 
+    device = None
+    mimetype = 'text/event-stream'
+
+    if device_id == 'camera':
+        device = Camera()
+        mimetype = 'multipart/x-mixed-replace; boundary=frame'
+    elif device_id == 'openbci_cython':
+        device = EEGBoard()
+        mimetype = 'text/event-stream'
         buffer_last_seconds = 2
-        buffer_size = buffer_last_seconds * board.sampling_rate
+        buffer_size = buffer_last_seconds * device.sampling_rate
         updates_per_second = 5
 
-        while True:
-            try:
-                time.sleep(1 / updates_per_second)
-                data = board.get_data()
-                if len(data[0]) != 0:
-                    print(len(data), len(data[0]))
-                    data = data[-buffer_size:]
-                    yield f"event:{event}\ndata:{data.tolist()}\n\n"
-            except GeneratorExit:
-                print('board closed')
-                board.stop_record()
-                return
+    if device is None:
+        return 'Invalid device', 500
 
-    return Response(stream_board_data(), mimetype="text/event-stream")
-
-
-@app.route("/camera_stream")
-def camera_stream():
-    print(50)
-    print(request.data)
-    print(request.get_json())
-    print(request.json)
-    print(request.query_string)  # b'device=camera
-    print(request.url)  # http://127.0.0.1:5000/camera_stream?device=camera
+    device.start_record()
 
     def gen_frames():
-        camera = Camera()
-        camera.start_record()
         while True:
             try:
-                data = camera.get_data()
-                if data:
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
+                if device_id == 'camera':
+                    data = device.get_data()
+                    if data:
+                        yield (b'--frame\r\n'
+                               b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
+                elif device_id == 'openbci_cython':
+                    time.sleep(1 / updates_per_second)
+                    data = device.get_data()
+                    if len(data[0]) != 0:
+                        print(len(data), len(data[0]))
+                        data = data[-buffer_size:]
+                        yield f"event:{'upd'}\ndata:{data.tolist()}\n\n"
             except GeneratorExit:
-                print('closed')
-                camera.stop_record()
+                print(f'Device [{device_id}] stream closed')
+                device.stop_record()
                 return
 
-    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen_frames(), mimetype=mimetype)
 
 
 if __name__ == "__main__":

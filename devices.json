@@ -19,7 +19,7 @@
     ]
   },
   {
-    "id": "openbci",
+    "id": "openbci_cython",
     "name": "OpenBCI EEG",
     "stream": true,
     "settings": [
