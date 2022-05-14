@@ -3,8 +3,10 @@ from time import sleep
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels, BoardIds, BrainFlowError
 from utils.logger import logging
 
+from .device import Device
 
-class EEGBoard(object):
+
+class EEGBoard(Device):
     def __init__(self):
         super().__init__()
         BoardShim.enable_dev_board_logger()
@@ -23,7 +25,7 @@ class EEGBoard(object):
         self.eeg_channels = self.board.get_eeg_channels(self.board_id)
         # print(self.sampling_rate, self.eeg_channels, self.timestamp_channel)
 
-    def start(self):
+    def start_record(self):
         logging.info("Board start")
         # self.pause_flag.set()
         if not self.board.is_prepared():
@@ -37,12 +39,12 @@ class EEGBoard(object):
         #     data = self.board.get_current_board_data(1)
         #     timestamp = int(data[self.timestamp_channel][0])
 
-    def pause(self):
+    def pause_record(self):
         logging.info("Board pause")
         # self.pause_flag.clear()
         # self.board.stop_stream()
 
-    def stop(self):
+    def stop_record(self):
         logging.info("Board stop")
         # self.pause_flag.clear()
         try:

@@ -1,21 +1,48 @@
 import time
+import json
 
-from eeg_board import EEGBoard
-from flask import Flask, Response
+from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
-from cv2 import cv2
+
+from devices import EEGBoard, Camera
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
-CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000"]}})
+CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localhost:3000"]}})
+
+
+@app.route("/devices")
+def devices():
+    with open("./devices.json") as devices_json:
+        return jsonify(json.load(devices_json))
+
+
+@app.route("/record/start", methods=['POST'])
+def startRecord():
+    return jsonify(True)
+
+
+@app.route("/record/pause", methods=['POST'])
+def pauseRecord():
+    return jsonify(True)
+
+
+@app.route("/record/unpause", methods=['POST'])
+def unpauseRecord():
+    return jsonify(True)
+
+
+@app.route("/record/stop", methods=['POST'])
+def stopRecord():
+    return jsonify(True)
 
 
 @app.route("/stream")
 def eeg_stream():
     def stream_board_data():
         board = EEGBoard()
-        board.start()
+        board.start_record()
         event = "eeg_update"
 
         buffer_last_seconds = 2
@@ -23,30 +50,43 @@ def eeg_stream():
         updates_per_second = 5
 
         while True:
-            time.sleep(1 / updates_per_second)
-            data = board.get_data()
-            if len(data[0]) != 0:
-                print(len(data), len(data[0]))
-                data = data[-buffer_size:]
-                yield f"event:{event}\ndata:{data.tolist()}\n\n"
+            try:
+                time.sleep(1 / updates_per_second)
+                data = board.get_data()
+                if len(data[0]) != 0:
+                    print(len(data), len(data[0]))
+                    data = data[-buffer_size:]
+                    yield f"event:{event}\ndata:{data.tolist()}\n\n"
+            except GeneratorExit:
+                print('board closed')
+                board.stop_record()
+                return
 
     return Response(stream_board_data(), mimetype="text/event-stream")
 
 
 @app.route("/camera_stream")
 def camera_stream():
-    camera = cv2.VideoCapture(0)
+    print(50)
+    print(request.data)
+    print(request.get_json())
+    print(request.json)
+    print(request.query_string)  # b'device=camera
+    print(request.url)  # http://127.0.0.1:5000/camera_stream?device=camera
 
     def gen_frames():
+        camera = Camera()
+        camera.start_record()
         while True:
-            success, frame = camera.read()
-            if not success:
-                break
-            else:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            try:
+                data = camera.get_data()
+                if data:
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
+            except GeneratorExit:
+                print('closed')
+                camera.stop_record()
+                return
 
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 

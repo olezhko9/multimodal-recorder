@@ -1,0 +1,41 @@
+[
+  {
+    "id": "camera",
+    "name": "WebCamera",
+    "stream": true,
+    "settings": [
+      {
+        "type": "number",
+        "name": "width",
+        "label": "Ширина",
+        "default": 600
+      },
+      {
+        "type": "number",
+        "name": "height",
+        "label": "Высота",
+        "default": 450
+      }
+    ]
+  },
+  {
+    "id": "openbci",
+    "name": "OpenBCI EEG",
+    "stream": true,
+    "settings": [
+      {
+        "type": "select",
+        "name": "board_type",
+        "label": "Тип устройства",
+        "options": ["Cython"],
+        "default": "Cython"
+      },
+      {
+        "type": "string",
+        "name": "port",
+        "label": "Порт",
+        "default": "/dev/ttyUSB0"
+      }
+    ]
+  }
+]
