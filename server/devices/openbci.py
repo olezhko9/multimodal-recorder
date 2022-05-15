@@ -12,7 +12,7 @@ class OpenBCIBoard(Device):
     default_port = "/dev/ttyUSB0"
 
     def __init__(self, options):
-        super().__init__()
+        super().__init__(options)
         BoardShim.enable_dev_board_logger()
 
         port = options.get('port') or OpenBCIBoard.default_port
@@ -72,11 +72,14 @@ class OpenBCIBoard(Device):
             else:
                 self.buffer = np.concatenate((self.buffer, board_data), axis=1)
                 if len(self.buffer[0]) > self.max_buffer_size:
-                    data = self.buffer.tolist()
+                    buffer = self.buffer
                     self.buffer = None
-                    return data
+                    return buffer
 
         return None
+
+    def format_to_sse(self, data):
+        return data.tolist()
 
 
 if __name__ == '__main__':

@@ -4,6 +4,8 @@ from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 
 from devices import DeviceManager
+from recorder import DataRecorder
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -11,6 +13,7 @@ app.config['DEBUG'] = True
 CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localhost:3000"]}})
 
 device_manager = DeviceManager()
+data_recorder = DataRecorder(device_manager)
 
 
 @app.route("/devices")
@@ -33,9 +36,11 @@ def start_record():
 
             device_manager.add_and_run_device(device_id, device_params)
 
-        device_manager.read_and_save_data()
+        device_manager.read_data()
+        data_recorder.start_record()
     except Exception as err:
         print(err)
+        data_recorder.stop_record()
         device_manager.stop_and_remove_devices()
         return "Error when trying to connect to device", 500
 
@@ -54,6 +59,7 @@ def unpause_record():
 
 @app.route("/record/stop", methods=['POST'])
 def stop_record():
+    data_recorder.stop_record()
     device_manager.stop_and_remove_devices()
     return jsonify(True)
 

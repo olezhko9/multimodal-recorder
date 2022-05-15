@@ -27,6 +27,7 @@ class DeviceManager(threading.Thread):
         self._devices = {}
         self._isProcessingData = False
         self.stream_queue = Queue()
+        self.read_queue = Queue()
         self._streamingDevices = {}
 
     def add_device(self, device_id, device_options=None):
@@ -75,17 +76,25 @@ class DeviceManager(threading.Thread):
                 device = self.get_device(device_id)
                 data = device.get_data()
 
-                if self._streamingDevices.get(device_id, None) and data is not None:
-                    pair = (device_id, data)
-                    self.stream_queue.put(pair)
+                if data is not None:
+                    self.read_queue.put((device_id, data))
 
-    def read_and_save_data(self):
+                    if self._streamingDevices.get(device_id, None):
+                        self.stream_queue.put((device_id, device.format_to_sse(data)))
+
+    def read_data(self):
         self._isProcessingData = True
         if not self.is_alive():
             threading.Thread.start(self)
 
+        return self.read_queue
+
     def start_stream(self, device_id):
         self._streamingDevices[device_id] = True
+        return self.stream_queue
 
     def stop_stream(self, device_id):
         self._streamingDevices.pop(device_id, None)
+
+    def get_data_stream(self):
+        return self.read_queue

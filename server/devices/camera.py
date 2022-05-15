@@ -9,7 +9,7 @@ class Camera(Device):
     default_height = 450
 
     def __init__(self, options):
-        super().__init__()
+        super().__init__(options)
         self.cap = None
         self.width = options.get('width') or Camera.default_width
         self.height = options.get('height') or Camera.default_height
@@ -34,8 +34,7 @@ class Camera(Device):
             if not success:
                 break
             else:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                self.last_frame = buffer.tobytes()
+                self.last_frame = frame
 
     def pause_record(self):
         pass
@@ -53,3 +52,7 @@ class Camera(Device):
         frame = self.last_frame
         self.last_frame = None
         return frame
+
+    def format_to_sse(self, data):
+        ret, buffer = cv2.imencode('.jpg', data)
+        return buffer.tobytes()

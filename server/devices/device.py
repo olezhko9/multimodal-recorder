@@ -3,8 +3,9 @@ import threading
 
 
 class Device(ABC, threading.Thread):
-    def __init__(self):
+    def __init__(self, options):
         threading.Thread.__init__(self)
+        self.options = options
         self.started = False
         self._stop_event = threading.Event()
 
