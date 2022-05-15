@@ -1,25 +1,30 @@
-import json
-
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 
 from devices import DeviceManager
 from recorder import DataRecorder
-
+from db import MongoJsonEncoder, DbManager
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
+
+app.config["MONGO_URI"] = "mongodb://localhost:27017/test"
+app.json_encoder = MongoJsonEncoder
 CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localhost:3000"]}})
 
-device_manager = DeviceManager()
+db = DbManager(app).get_db()
+
+all_devices = list(db.devices.find())
+device_manager = DeviceManager(all_devices)
+
 data_recorder = DataRecorder(device_manager)
 
 
 @app.route("/devices")
 def devices():
-    with open("./devices.json") as devices_json:
-        return jsonify(json.load(devices_json))
+    res = db.devices.find()
+    return jsonify(list(res))
 
 
 @app.route("/record/start", methods=['POST'])

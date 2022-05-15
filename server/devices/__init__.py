@@ -1,4 +1,3 @@
-import json
 import threading
 
 from queue import Queue
@@ -6,12 +5,8 @@ from queue import Queue
 from .openbci import OpenBCIBoard
 from .camera import Camera
 
-all_devices = []
-with open("./devices.json") as devices_json:
-    all_devices = json.load(devices_json)
 
-
-def get_device_class(device_id):
+def get_device_class(all_devices, device_id):
     device_config = [device for device in all_devices if device['id'] == device_id]
     if len(device_config):
         device_config = device_config[0]
@@ -22,8 +17,9 @@ def get_device_class(device_id):
 
 
 class DeviceManager(threading.Thread):
-    def __init__(self, ):
+    def __init__(self, all_devices):
         threading.Thread.__init__(self)
+        self.all_devices = all_devices
         self._devices = {}
         self._isProcessingData = False
         self.stream_queue = Queue()
@@ -37,7 +33,7 @@ class DeviceManager(threading.Thread):
         if self.get_device(device_id) is not None:
             raise Exception(f"Device with id [{device_id}] already exists")
 
-        DeviceClass = get_device_class(device_id)
+        DeviceClass = get_device_class(self.all_devices, device_id)
         if DeviceClass is None:
             raise Exception(f"Device class for device_id [{device_id}] not found")
 
