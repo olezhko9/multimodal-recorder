@@ -27,6 +27,9 @@ class Camera(Device):
 
     def run(self):
         while True:
+            if self.cap is None:
+                continue
+
             success, frame = self.cap.read()
             if not success:
                 break
@@ -47,4 +50,6 @@ class Camera(Device):
 
     def get_data(self):
         super(Camera, self).get_data()
-        return self.last_frame
+        frame = self.last_frame
+        self.last_frame = None
+        return frame

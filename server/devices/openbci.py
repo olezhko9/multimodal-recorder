@@ -5,6 +5,8 @@ from utils.logger import logging
 
 from .device import Device
 
+import numpy as np
+
 
 class OpenBCIBoard(Device):
     default_port = "/dev/ttyUSB0"
@@ -29,6 +31,9 @@ class OpenBCIBoard(Device):
         self.timestamp_channel = self.board.get_timestamp_channel(self.board_id)
         self.eeg_channels = self.board.get_eeg_channels(self.board_id)
         # print(self.sampling_rate, self.eeg_channels, self.timestamp_channel)
+
+        self.buffer = None
+        self.max_buffer_size = self.sampling_rate // 4
 
     def start_record(self):
         logging.info("Board start")
@@ -59,7 +64,19 @@ class OpenBCIBoard(Device):
         self.board.release_session()
 
     def get_data(self):
-        return self.board.get_board_data()
+        board_data = self.board.get_board_data()
+
+        if len(board_data[0]):
+            if self.buffer is None:
+                self.buffer = board_data
+            else:
+                self.buffer = np.concatenate((self.buffer, board_data), axis=1)
+                if len(self.buffer[0]) > self.max_buffer_size:
+                    data = self.buffer.tolist()
+                    self.buffer = None
+                    return data
+
+        return None
 
 
 if __name__ == '__main__':

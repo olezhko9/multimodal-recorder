@@ -1,4 +1,3 @@
-import time
 import json
 
 from flask import Flask, Response, request, jsonify
@@ -33,7 +32,10 @@ def start_record():
                     device_params[param['name']] = param['value']
 
             device_manager.add_and_run_device(device_id, device_params)
-    except Exception:
+
+        device_manager.read_and_save_data()
+    except Exception as err:
+        print(err)
         device_manager.stop_and_remove_devices()
         return "Error when trying to connect to device", 500
 
@@ -70,30 +72,23 @@ def stream():
         mimetype = 'multipart/x-mixed-replace; boundary=frame'
     elif device_id == 'openbci_cython':
         mimetype = 'text/event-stream'
-        buffer_last_seconds = 2
-        buffer_size = buffer_last_seconds * device.sampling_rate
-        updates_per_second = 5
 
-    def gen_frames():
+    device_manager.start_stream(device_id)
+
+    def generator():
         while True:
             try:
-                if device_id == 'camera':
-                    data = device.get_data()
-                    if data:
-                        yield (b'--frame\r\n'
-                               b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
-                elif device_id == 'openbci_cython':
-                    time.sleep(1 / updates_per_second)
-                    data = device.get_data()
-                    if len(data[0]) != 0:
-                        print(len(data), len(data[0]))
-                        data = data[-buffer_size:]
-                        yield f"event:{'upd'}\ndata:{data.tolist()}\n\n"
+                item_device_id, data = device_manager.stream_queue.get()
+                if item_device_id == 'camera':
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
+                elif item_device_id == 'openbci_cython':
+                    yield f"event:{'upd'}\ndata:{data}\n\n"
             except GeneratorExit:
-                print(f'Device [{device_id}] stream closed')
+                device_manager.stop_stream(device_id)
                 return
 
-    return Response(gen_frames(), mimetype=mimetype)
+    return Response(generator(), mimetype=mimetype)
 
 
 if __name__ == "__main__":

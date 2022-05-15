@@ -1,6 +1,8 @@
 import json
 import threading
 
+from queue import Queue
+
 from .openbci import OpenBCIBoard
 from .camera import Camera
 
@@ -20,9 +22,12 @@ def get_device_class(device_id):
 
 
 class DeviceManager(threading.Thread):
-    def __init__(self):
+    def __init__(self, ):
         threading.Thread.__init__(self)
         self._devices = {}
+        self._isProcessingData = False
+        self.stream_queue = Queue()
+        self._streamingDevices = {}
 
     def add_device(self, device_id, device_options=None):
         if device_options is None:
@@ -45,8 +50,11 @@ class DeviceManager(threading.Thread):
         self._devices.pop(device_id, None)
 
     def stop_and_remove_devices(self):
+        self._isProcessingData = False
+
         for device_id in list(self._devices):
             try:
+                self.stop_stream(device_id)
                 self._devices[device_id].stop_record()
             except Exception:
                 pass
@@ -57,3 +65,27 @@ class DeviceManager(threading.Thread):
 
     def get_device(self, device_id):
         return self._devices.get(device_id)
+
+    def run(self):
+        while True:
+            if not self._isProcessingData:
+                return
+
+            for device_id in self._devices:
+                device = self.get_device(device_id)
+                data = device.get_data()
+
+                if self._streamingDevices.get(device_id, None) and data is not None:
+                    pair = (device_id, data)
+                    self.stream_queue.put(pair)
+
+    def read_and_save_data(self):
+        self._isProcessingData = True
+        if not self.is_alive():
+            threading.Thread.start(self)
+
+    def start_stream(self, device_id):
+        self._streamingDevices[device_id] = True
+
+    def stop_stream(self, device_id):
+        self._streamingDevices.pop(device_id, None)
