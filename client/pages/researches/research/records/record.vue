@@ -17,10 +17,33 @@
                 </div>
                 <div class="device-card__buttons">
                   <b-button
+                    :disabled="isDeviceStarted(device.device_id)"
                     type="is-primary"
                     icon-left="cog"
                     @click="modalDevice = device">
                   </b-button>
+                  <b-button
+                    v-if="isDeviceStarted(device.device_id)"
+                    type="is-primary"
+                    icon-left="eye"
+                    @click="openDeviceWindow(device)">
+                  </b-button>
+                  <b-tooltip
+                    v-if="!isDeviceStarted(device.device_id)"
+                    label="Запустить устройство">
+                    <b-button
+                      type="is-primary"
+                      icon-left="play"
+                      @click="onStartDeviceClick(device)">
+                    </b-button>
+                  </b-tooltip>
+                  <b-tooltip v-else label="Остановить устройство">
+                    <b-button
+                      type="is-danger"
+                      icon-left="stop"
+                      @click="onStopDeviceClick(device)">
+                    </b-button>
+                  </b-tooltip>
                 </div>
               </div>
             </div>
@@ -28,6 +51,10 @@
         </div>
       </div>
     </div>
+
+    <b-message v-if="!canRecord" type="is-danger">
+      Запустите все устройства, чтобы иметь возможность начать запись
+    </b-message>
 
     <div class="buttons buttons--space-btw">
       <b-button
@@ -39,6 +66,7 @@
       </b-button>
       <b-button
         v-if="readyState !== 'ACTIVE'"
+        :disabled="!canRecord"
         type="is-primary"
         icon-left="record-rec"
         @click="startRecord">
@@ -63,6 +91,8 @@ export default {
       research: null,
       modalDevice: null,
       readyState: 'INACTIVE', // INACTIVE, ACTIVE, PAUSED, STOPPED
+
+      devicesConfigs: {},
     }
   },
 
@@ -72,13 +102,21 @@ export default {
     }),
     ...mapState('device', {
       devices: state => state.devices,
+      startedDevices: state => state.startedDevices,
     }),
     ...mapGetters('research', [
       'researchById'
     ]),
+    ...mapGetters('device', [
+      'isDeviceStarted'
+    ]),
 
     researchId() {
       return this.$route.query.researchId
+    },
+
+    canRecord() {
+      return this.research && this.research.devices.length === this.startedDevices.length
     }
   },
 
@@ -93,6 +131,11 @@ export default {
     !this.researches.length && await this.getResearches()
 
     this.research = this.researchById(this.researchId)
+    for (let device of this.research.devices) {
+      this.devicesConfigs[device.device_id] = {
+        started: false
+      }
+    }
   },
 
   methods: {
@@ -104,7 +147,19 @@ export default {
     ]),
     ...mapActions('device', [
       'getDevices',
+      'startDevice',
+      'stopDevice',
     ]),
+
+    @notifyAfter('Успешно')
+    async onStartDeviceClick(device) {
+      return this.startDevice(device)
+    },
+
+    @notifyAfter('Успешно')
+    async onStopDeviceClick(device) {
+      return this.stopDevice({ deviceId: device.device_id })
+    },
 
     @notifyAfter('Запись начата')
     async startRecord() {
@@ -137,6 +192,10 @@ export default {
       }
       return result
     },
+
+    openDeviceWindow(device) {
+      window.open('/devices' + (device.device_id === 'camera' ? '/camera' : '/eeg'), '_blank')
+    }
   }
 }
 </script>

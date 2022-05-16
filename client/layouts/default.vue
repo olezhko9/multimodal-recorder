@@ -11,10 +11,10 @@
           Исследования
         </b-navbar-item>
         <b-navbar-dropdown label="Устройства">
-          <b-navbar-item tag="router-link" :to="{ path: '/camera' }">
+          <b-navbar-item tag="router-link" :to="{ path: '/devices/camera' }">
             Камера
           </b-navbar-item>
-          <b-navbar-item tag="router-link" :to="{ path: '/eeg' }">
+          <b-navbar-item tag="router-link" :to="{ path: '/devices/eeg' }">
             EEG
           </b-navbar-item>
         </b-navbar-dropdown>
