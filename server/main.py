@@ -5,6 +5,7 @@ from mongoengine import connect
 from devices import DeviceManager
 from recorder import DataRecorder
 from utils import MongoJsonEncoder
+import utils.flie_system as fs
 from service import device_service, research_service
 
 app = Flask(__name__)
@@ -44,6 +45,12 @@ def research_post():
 def research_delete(research_id):
     research_service.delete_research(research_id)
     return jsonify(True)
+
+
+@app.route("/research/<research_id>/records", methods=['GET'])
+def get_research_records(research_id):
+    res = research_service.get_records(research_id)
+    return jsonify(res)
 
 
 @app.route("/record/start", methods=['POST'])
@@ -119,6 +126,13 @@ def stream():
                 return
 
     return Response(generator(), mimetype=mimetype)
+
+
+@app.route('/fs/directory/open', methods=['POST'])
+def fs_open_dir():
+    params = request.json
+    res = fs.open_directory(params.get('directory', None))
+    return jsonify(res)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 from model.reasearch import Research
+from model.research_record import ResearchRecord
 from bson import ObjectId
 
 
@@ -18,3 +19,7 @@ def delete_research(research_id):
     if research:
         research.delete()
 
+
+def get_records(research_id):
+    records = ResearchRecord.objects(research_id=research_id)
+    return [record.to_mongo() for record in records]
