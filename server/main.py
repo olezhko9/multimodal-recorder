@@ -5,7 +5,7 @@ from mongoengine import connect
 from devices import DeviceManager
 from recorder import DataRecorder
 from utils import MongoJsonEncoder
-from service.device_service import get_devices
+from service import device_service, research_service
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -16,15 +16,34 @@ CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localh
 connect(host="mongodb://localhost:27017/test")
 app.json_encoder = MongoJsonEncoder
 
-device_manager = DeviceManager(all_devices=get_devices())
+device_manager = DeviceManager(all_devices=device_service.get_devices())
 
 data_recorder = DataRecorder(device_manager)
 
 
 @app.route("/devices")
 def devices():
-    res = get_devices()
+    res = device_service.get_devices()
     return jsonify(res)
+
+
+@app.route("/research")
+def research_get():
+    res = research_service.get_researches()
+    return jsonify(res)
+
+
+@app.route("/research", methods=['POST'])
+def research_post():
+    research_data = request.json
+    res = research_service.create_research(research_data)
+    return jsonify(res)
+
+
+@app.route("/research/<research_id>", methods=['DELETE'])
+def research_delete(research_id):
+    research_service.delete_research(research_id)
+    return jsonify(True)
 
 
 @app.route("/record/start", methods=['POST'])
