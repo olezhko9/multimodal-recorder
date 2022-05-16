@@ -6,7 +6,24 @@ body {
 
 .box {
   display: flex;
+  flex-direction: column;
+
+  .box-body {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.buttons--end {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.buttons--space-btw {
+  display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
 }
