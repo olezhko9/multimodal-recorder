@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import recorder from "./modules/recorder"
+import record from "./modules/record"
 import research from './modules/research'
 import device from './modules/device'
 
@@ -14,7 +14,7 @@ const getNamespacedModule = (module) => ({
 
 const store = () => new Vuex.Store({
   modules: {
-    recorder: getNamespacedModule(recorder),
+    record: getNamespacedModule(record),
     research: getNamespacedModule(research),
     device: getNamespacedModule(device),
   },

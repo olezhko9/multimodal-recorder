@@ -86,22 +86,10 @@ def stop_device():
 
 @app.route("/record/start", methods=['POST'])
 def start_record():
-    request_devices = request.json
     try:
-        for device in request_devices:
-            device_id = device['device_id']
-
-            device_params = {}
-            if device.get('settings'):
-                for param in device['settings']:
-                    device_params[param['name']] = param['value']
-
-            device_manager.add_and_run_device(device_id, device_params)
-
-        device_manager.read_data()
         data_recorder.start_record()
     except Exception as err:
-        print(65, err)
+        print(err)
         data_recorder.stop_record()
         device_manager.stop_and_remove_devices()
         return "Error when trying connect to device", 500
@@ -122,7 +110,6 @@ def unpause_record():
 @app.route("/record/stop", methods=['POST'])
 def stop_record():
     data_recorder.stop_record()
-    device_manager.stop_and_remove_devices()
     return jsonify(True)
 
 

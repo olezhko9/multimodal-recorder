@@ -65,22 +65,26 @@
         Назад
       </b-button>
       <b-button
-        v-if="readyState !== 'ACTIVE'"
+        v-if="recordState !== 'ACTIVE'"
         :disabled="!canRecord"
         type="is-primary"
-        icon-left="record-rec"
-        @click="startRecord">
+        icon-left="play"
+        @click="onStartRecordClick">
         Начать запись
       </b-button>
-      <b-button v-if="readyState === 'ACTIVE'" type="is-primary" @click="pauseRecord">Приостановить запись</b-button>
-      <b-button v-if="readyState === 'PAUSED'" type="is-primary" @click="unpauseRecord">Возобновить запись</b-button>
-      <b-button v-if="readyState === 'ACTIVE'" type="is-primary" @click="stopRecord">Остановить запись</b-button>
+      <b-button
+        v-if="recordState === 'ACTIVE'"
+        type="is-primary"
+        icon-left="stop"
+        @click="onStopRecordClick">
+        Остановить запись
+      </b-button>
     </div>
   </div>
 </template>
 
 <script>
-import { mapActions, mapGetters, mapMutations, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import { notifyAfter } from "@/modules/notification-decorators"
 
 export default {
@@ -90,9 +94,6 @@ export default {
     return {
       research: null,
       modalDevice: null,
-      readyState: 'INACTIVE', // INACTIVE, ACTIVE, PAUSED, STOPPED
-
-      devicesConfigs: {},
     }
   },
 
@@ -103,6 +104,9 @@ export default {
     ...mapState('device', {
       devices: state => state.devices,
       startedDevices: state => state.startedDevices,
+    }),
+    ...mapState('record', {
+      recordState: state => state.recordState,
     }),
     ...mapGetters('research', [
       'researchById'
@@ -120,28 +124,14 @@ export default {
     }
   },
 
-  watch: {
-    readyState(newState) {
-      this.setStatus(newState)
-    }
-  },
-
   async mounted() {
     !this.devices.length && await this.getDevices()
     !this.researches.length && await this.getResearches()
 
     this.research = this.researchById(this.researchId)
-    for (let device of this.research.devices) {
-      this.devicesConfigs[device.device_id] = {
-        started: false
-      }
-    }
   },
 
   methods: {
-    ...mapMutations('recorder', {
-      setStatus: 'SET_STATUS',
-    }),
     ...mapActions('research', [
       'getResearches',
     ]),
@@ -149,6 +139,10 @@ export default {
       'getDevices',
       'startDevice',
       'stopDevice',
+    ]),
+    ...mapActions('record', [
+      'startRecord',
+      'stopRecord',
     ]),
 
     @notifyAfter('Успешно')
@@ -162,35 +156,13 @@ export default {
     },
 
     @notifyAfter('Запись начата')
-    async startRecord() {
-      const result = await this.$axios.$post("/record/start", this.research.devices)
-      if (result === true) {
-        this.readyState = 'ACTIVE'
-      }
-      return result
-    },
-
-    async pauseRecord() {
-      const result = await this.$axios.$post("/record/pause", {})
-      if (result === true) {
-        this.readyState = 'PAUSED'
-      }
-    },
-
-    async unpauseRecord() {
-      const result = await this.$axios.$post("/record/unpause", {})
-      if (result === true) {
-        this.readyState = 'ACTIVE'
-      }
+    async onStartRecordClick() {
+      return this.startRecord()
     },
 
     @notifyAfter('Запись остановлена')
-    async stopRecord() {
-      const result = await this.$axios.$post("/record/stop", {})
-      if (result === true) {
-        this.readyState = 'STOPPED'
-      }
-      return result
+    async onStopRecordClick() {
+      return this.stopRecord()
     },
 
     openDeviceWindow(device) {

@@ -32,7 +32,7 @@
     </div>
 
     <div class="statusbar">
-      <span>{{ recorderState }}</span>
+      <span>{{ recordState }}</span>
     </div>
   </div>
 </template>
@@ -49,8 +49,8 @@ export default {
   },
 
   computed: {
-    ...mapState('recorder', {
-      recorderState: state => state.status,
+    ...mapState('record', {
+      recordState: state => state.recordState,
     })
   }
 }
