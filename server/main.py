@@ -1,30 +1,30 @@
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
+from mongoengine import connect
 
 from devices import DeviceManager
 from recorder import DataRecorder
-from db import MongoJsonEncoder, DbManager
+from utils import MongoJsonEncoder
+from service.device_service import get_devices
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
 
-app.config["MONGO_URI"] = "mongodb://localhost:27017/test"
-app.json_encoder = MongoJsonEncoder
 CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localhost:3000"]}})
 
-db = DbManager(app).get_db()
+connect(host="mongodb://localhost:27017/test")
+app.json_encoder = MongoJsonEncoder
 
-all_devices = list(db.devices.find())
-device_manager = DeviceManager(all_devices)
+device_manager = DeviceManager(all_devices=get_devices())
 
 data_recorder = DataRecorder(device_manager)
 
 
 @app.route("/devices")
 def devices():
-    res = db.devices.find()
-    return jsonify(list(res))
+    res = get_devices()
+    return jsonify(res)
 
 
 @app.route("/record/start", methods=['POST'])
@@ -32,7 +32,7 @@ def start_record():
     request_devices = request.json
     try:
         for device in request_devices:
-            device_id = device['id']
+            device_id = device['device_id']
 
             device_params = {}
             if device.get('settings'):
@@ -44,7 +44,7 @@ def start_record():
         device_manager.read_data()
         data_recorder.start_record()
     except Exception as err:
-        print(err)
+        print(65, err)
         data_recorder.stop_record()
         device_manager.stop_and_remove_devices()
         return "Error when trying to connect to device", 500

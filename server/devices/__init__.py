@@ -7,7 +7,7 @@ from .camera import Camera
 
 
 def get_device_class(all_devices, device_id):
-    device_config = [device for device in all_devices if device['id'] == device_id]
+    device_config = [device for device in all_devices if device['device_id'] == device_id]
     if len(device_config):
         device_config = device_config[0]
         device_class = globals().get(device_config.get('class'))
