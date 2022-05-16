@@ -53,6 +53,37 @@ def get_research_records(research_id):
     return jsonify(res)
 
 
+@app.route('/device/start', methods=['POST'])
+def start_device():
+    try:
+        device = request.json
+        device_id = device['device_id']
+
+        device_params = {}
+        if device.get('settings'):
+            for param in device['settings']:
+                device_params[param['name']] = param['value']
+
+        device_manager.add_and_run_device(device_id, device_params)
+        device_manager.read_data()
+    except Exception:
+        device_manager.stop_and_remove_devices()
+        return "Error when trying connect to device", 500
+
+    return jsonify(True)
+
+
+@app.route('/device/stop', methods=['POST'])
+def stop_device():
+    try:
+        device_id = request.json['device_id']
+        device_manager.stop_and_remove_device(device_id)
+    except:
+        return "Error when trying stop device", 500
+
+    return jsonify(True)
+
+
 @app.route("/record/start", methods=['POST'])
 def start_record():
     request_devices = request.json
@@ -73,7 +104,7 @@ def start_record():
         print(65, err)
         data_recorder.stop_record()
         device_manager.stop_and_remove_devices()
-        return "Error when trying to connect to device", 500
+        return "Error when trying connect to device", 500
 
     return jsonify(True)
 
