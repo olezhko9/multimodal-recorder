@@ -7,8 +7,11 @@
         </b-navbar-item>
       </template>
       <template #start>
-        <b-navbar-item href="#">
+        <b-navbar-item tag="router-link" :to="{ path: '/researches' }">
           Исследования
+        </b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ path: '/record' }">
+          Запись
         </b-navbar-item>
         <b-navbar-dropdown label="Устройства">
           <b-navbar-item tag="router-link" :to="{ path: '/camera' }">
@@ -18,6 +21,9 @@
             EEG
           </b-navbar-item>
         </b-navbar-dropdown>
+        <b-navbar-item href="#">
+          Настройки
+        </b-navbar-item>
       </template>
     </b-navbar>
 

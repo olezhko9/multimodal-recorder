@@ -57,6 +57,16 @@ export default {
     scss: ['./assets/css/*.scss']
   },
 
+  router: {
+    extendRoutes(routes, resolve) {
+      routes.push({
+        name: 'main',
+        path: '/',
+        redirect: { path: "/researches" }
+      })
+    }
+  },
+
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   }

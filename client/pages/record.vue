@@ -3,90 +3,84 @@
     <h1 class="title is-4">Метод и средства для сбора и первичной обработки мультимодальных данных, собранных с помощью
       различных нейроинтерфейсов</h1>
 
-    <b-tabs type="is-boxed">
-      <b-tab-item label="Устройства">
-        <b-field label="Добавить устройство">
-          <b-select
-            placeholder="Выбрать устройство"
-            expanded
-            @input="onDeviceSelect">
-            <option
-              v-for="device in notSelectedDevices"
-              :value="device"
-              :key="device.name">
-              {{ device.name }}
-            </option>
-          </b-select>
-        </b-field>
+    <b-field label="Добавить устройство">
+      <b-select
+        placeholder="Выбрать устройство"
+        expanded
+        @input="onDeviceSelect">
+        <option
+          v-for="device in notSelectedDevices"
+          :value="device"
+          :key="device.name">
+          {{ device.name }}
+        </option>
+      </b-select>
+    </b-field>
 
-        <div v-if="selectedDevices.length" class="mb-4">
-          <span class="label">Выбранные устройства</span>
-          <div
-            v-for="(device, index) in selectedDevices"
-            :key="device.id"
-            class="box device-card">
-            <div class="device-card__header">
-              {{ device.name }}
-            </div>
-            <div class="device-card__buttons">
-              <b-button
-                type="is-primary"
-                icon-left="cog"
-                @click="modalDevice = device">
-              </b-button>
-              <b-button
-                type="is-danger"
-                icon-left="delete"
-                @click="removeSelectedDevice(index)">
-              </b-button>
-            </div>
-          </div>
+    <div v-if="selectedDevices.length" class="mb-4">
+      <span class="label">Выбранные устройства</span>
+      <div
+        v-for="(device, index) in selectedDevices"
+        :key="device.id"
+        class="box device-card">
+        <div class="device-card__header">
+          {{ device.name }}
         </div>
+        <div class="device-card__buttons">
+          <b-button
+            type="is-primary"
+            icon-left="cog"
+            @click="modalDevice = device">
+          </b-button>
+          <b-button
+            type="is-danger"
+            icon-left="delete"
+            @click="removeSelectedDevice(record)">
+          </b-button>
+        </div>
+      </div>
+    </div>
 
-        <b-modal
-          :active="!!modalDevice"
-          trap-focus
-          has-modal-card
-          :destroy-on-hide="true"
-          aria-modal
-          @close="modalDevice = null">
-          <form v-if="modalDevice">
-            <div class="modal-card" style="width: 640px">
-              <header class="modal-card-head">
-                <p class="modal-card-title">Настройки {{ modalDevice.name }}</p>
-              </header>
-              <section class="modal-card-body">
-                <b-field v-for="setting in modalDevice.settings" :key="setting.name" :label="setting.label">
-                  <b-select
-                    v-if="setting.type === 'select'"
-                    v-model="setting.value"
-                    expanded>
-                    <option v-for="opt in setting.options" :value="opt">{{ opt }}</option>
-                  </b-select>
-                  <b-input
-                    v-else
-                    v-model="setting.value"
-                    expanded>
-                  </b-input>
-                </b-field>
-              </section>
-              <footer class="modal-card-foot">
-                <b-button
-                  label="Закрыть"
-                  type="is-danger"
-                  @click="closeSettingsModal"/>
-                <b-button
-                  label="Сохранить"
-                  type="is-primary"
-                  @click="closeSettingsModal"/>
-              </footer>
-            </div>
-          </form>
-        </b-modal>
-      </b-tab-item>
-
-      <b-tab-item label="Настройки"></b-tab-item>
-    </b-tabs>
+    <b-modal
+      :active="!!modalDevice"
+      trap-focus
+      has-modal-card
+      :destroy-on-hide="true"
+      aria-modal
+      @close="modalDevice = null">
+      <form v-if="modalDevice">
+        <div class="modal-card" style="width: 640px">
+          <header class="modal-card-head">
+            <p class="modal-card-title">Настройки {{ modalDevice.name }}</p>
+          </header>
+          <section class="modal-card-body">
+            <b-field v-for="setting in modalDevice.settings" :key="setting.name" :label="setting.label">
+              <b-select
+                v-if="setting.type === 'select'"
+                v-model="setting.value"
+                expanded>
+                <option v-for="opt in setting.options" :value="opt">{{ opt }}</option>
+              </b-select>
+              <b-input
+                v-else
+                v-model="setting.value"
+                expanded>
+              </b-input>
+            </b-field>
+          </section>
+          <footer class="modal-card-foot">
+            <b-button
+              label="Закрыть"
+              type="is-danger"
+              @click="closeSettingsModal"/>
+            <b-button
+              label="Сохранить"
+              type="is-primary"
+              @click="closeSettingsModal"/>
+          </footer>
+        </div>
+      </form>
+    </b-modal>
 
     <div v-if="selectedDevices.length" class="buttons">
       <b-button v-if="readyState !== 'ACTIVE'" type="is-primary" @click="startRecord">Начать запись</b-button>
@@ -168,11 +162,13 @@ export default {
       }
     },
 
+    @notifyAfter('Запись остановлена')
     async stopRecord() {
       const result = await this.$axios.$post("/record/stop", {})
       if (result === true) {
         this.readyState = 'STOPPED'
       }
+      return result
     },
 
     closeSettingsModal() {
