@@ -27,7 +27,7 @@ class Camera(Device):
 
     def run(self):
         while True:
-            if self.cap is None:
+            if self.cap is None or not self.started:
                 continue
 
             success, frame = self.cap.read()

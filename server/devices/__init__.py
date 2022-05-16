@@ -25,6 +25,7 @@ class DeviceManager(threading.Thread):
         self.stream_queue = Queue()
         self.read_queue = Queue()
         self._streamingDevices = {}
+        self._isStartedOnce = False
 
     def add_device(self, device_id, device_options=None):
         if device_options is None:
@@ -43,18 +44,28 @@ class DeviceManager(threading.Thread):
         self.add_device(device_id, device_options)
         self._devices[device_id].start_record()
 
+    def stop_device(self, device_id):
+        try:
+            self.stop_stream(device_id)
+            self._devices[device_id].stop_record()
+        except Exception:
+            pass
+
     def remove_device(self, device_id):
         self._devices.pop(device_id, None)
+
+    def stop_and_remove_device(self, device_id):
+        if len(self._devices.keys()) == 1:
+            self._isProcessingData = False
+
+        self.stop_device(device_id)
+        self.remove_device(device_id)
 
     def stop_and_remove_devices(self):
         self._isProcessingData = False
 
         for device_id in list(self._devices):
-            try:
-                self.stop_stream(device_id)
-                self._devices[device_id].stop_record()
-            except Exception:
-                pass
+            self.stop_device(device_id)
             self.remove_device(device_id)
 
     def get_devices(self):
@@ -66,22 +77,27 @@ class DeviceManager(threading.Thread):
     def run(self):
         while True:
             if not self._isProcessingData:
-                return
+                continue
 
-            for device_id in self._devices:
+            for device_id in list(self._devices):
                 device = self.get_device(device_id)
-                data = device.get_data()
+                try:
+                    data = device.get_data()
+                    if data is not None:
+                        self.read_queue.put((device_id, data))
 
-                if data is not None:
-                    self.read_queue.put((device_id, data))
-
-                    if self._streamingDevices.get(device_id, None):
-                        self.stream_queue.put((device_id, device.format_to_sse(data)))
+                        if self._streamingDevices.get(device_id, None):
+                            self.stream_queue.put((device_id, device.format_to_sse(data)))
+                except Exception:  # probably device not started
+                    pass
 
     def read_data(self):
-        self._isProcessingData = True
-        if not self.is_alive():
-            threading.Thread.start(self)
+        if not self._isStartedOnce:
+            self.start()
+            self._isStartedOnce = True
+
+        if not self._isProcessingData:
+            self._isProcessingData = True
 
         return self.read_queue
 
