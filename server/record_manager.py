@@ -7,7 +7,7 @@ from cv2 import cv2
 from config import config
 
 
-class DataRecorder(threading.Thread):
+class RecordManager(threading.Thread):
     def __init__(self, device_manager):
         threading.Thread.__init__(self)
         self.device_manager = device_manager
@@ -44,7 +44,7 @@ class DataRecorder(threading.Thread):
 
         while True:
             if not self._recording:
-                return
+                continue
 
             device_id, data = self.data_stream.get()
             if device_id == 'camera':

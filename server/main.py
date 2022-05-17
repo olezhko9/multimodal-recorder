@@ -4,8 +4,8 @@ from mongoengine import connect
 
 from service import device_service
 from api import device_api, research_api, record_api
-from devices import DeviceManager
-from recorder import DataRecorder
+from device_manager import DeviceManager
+from record_manager import RecordManager
 from utils import MongoJsonEncoder
 import utils.flie_system as fs
 
@@ -19,11 +19,11 @@ connect(host="mongodb://localhost:27017/test")
 app.json_encoder = MongoJsonEncoder
 
 device_manager = DeviceManager(all_devices=device_service.get_devices())
-data_recorder = DataRecorder(device_manager)
+record_manager = RecordManager(device_manager)
 
 app.register_blueprint(device_api(device_manager))
 app.register_blueprint(research_api())
-app.register_blueprint(record_api(device_manager, data_recorder))
+app.register_blueprint(record_api(device_manager, record_manager))
 
 
 @app.route('/fs/directory/open', methods=['POST'])
