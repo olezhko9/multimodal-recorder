@@ -3,11 +3,11 @@
     <h1 class="title is-4">Новая запись</h1>
 
     <div v-if="research" class="mb-4">
-      <div v-if="research.devices && research.devices.length">
+      <div v-if="researchDevices && researchDevices.length">
         <span class="label mb-3">Устройства</span>
         <div class="columns is-multiline">
           <div
-            v-for="(device, index) in research.devices"
+            v-for="(device, index) in researchDevices"
             :key="device.id"
             class="column is-6">
             <div class="box">
@@ -48,6 +48,12 @@
               </div>
             </div>
           </div>
+
+          <device-settings-modal
+            :device="modalDevice"
+            @close="modalDevice = null"
+            @save="onSaveSettingsClick"
+          />
         </div>
       </div>
     </div>
@@ -86,14 +92,20 @@
 <script>
 import { mapActions, mapGetters, mapState } from 'vuex'
 import { notifyAfter } from "@/modules/notification-decorators"
+import lodash from "lodash"
+import DeviceSettingsModal from "@/components/DeviceSettingsModal"
 
 export default {
   name: "index",
+  components: {
+    DeviceSettingsModal,
+  },
 
   data() {
     return {
       research: null,
       modalDevice: null,
+      researchDevices: [],
     }
   },
 
@@ -129,6 +141,7 @@ export default {
     !this.researches.length && await this.getResearches()
 
     this.research = this.researchById(this.researchId)
+    this.researchDevices = lodash.cloneDeep(this.research.devices)
   },
 
   methods: {
@@ -163,6 +176,19 @@ export default {
     @notifyAfter('Запись остановлена')
     async onStopRecordClick() {
       return this.stopRecord()
+    },
+
+    onSaveSettingsClick(deviceSettings) {
+      this.researchDevices = this.researchDevices.map(device => {
+        if (device._id === this.modalDevice._id) {
+          return {
+            ...device,
+            settings: deviceSettings
+          }
+        }
+        return device
+      })
+      this.modalDevice = null
     },
 
     openDeviceWindow(device) {

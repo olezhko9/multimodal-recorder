@@ -41,52 +41,23 @@
       </div>
     </div>
 
-    <b-modal
-      :active="!!modalDevice"
-      trap-focus
-      has-modal-card
-      :destroy-on-hide="true"
-      aria-modal
-      @close="modalDevice = null">
-      <form v-if="modalDevice">
-        <div class="modal-card" style="width: 640px">
-          <header class="modal-card-head">
-            <p class="modal-card-title">Настройки {{ modalDevice.name }}</p>
-          </header>
-          <section class="modal-card-body">
-            <b-field v-for="setting in modalDevice.settings" :key="setting.name" :label="setting.label">
-              <b-select
-                v-if="setting.type === 'select'"
-                v-model="setting.value"
-                expanded>
-                <option v-for="opt in setting.options" :value="opt">{{ opt }}</option>
-              </b-select>
-              <b-input
-                v-else
-                v-model="setting.value"
-                expanded>
-              </b-input>
-            </b-field>
-          </section>
-          <footer class="modal-card-foot">
-            <b-button
-              label="Закрыть"
-              type="is-danger"
-              @click="closeSettingsModal"/>
-            <b-button
-              label="Сохранить"
-              type="is-primary"
-              @click="closeSettingsModal"/>
-          </footer>
-        </div>
-      </form>
-    </b-modal>
+    <device-settings-modal
+      :device="modalDevice"
+      @close="closeSettingsModal"
+      @save="onSaveSettingsClick"
+    />
   </div>
 </template>
 
 <script>
+import DeviceSettingsModal from "@/components/DeviceSettingsModal"
+import lodash from 'lodash'
+
 export default {
   name: "DeviceSelector",
+  components: {
+    DeviceSettingsModal,
+  },
 
   props: {
     devices: {
@@ -114,13 +85,27 @@ export default {
         for (let setting of device.settings) {
           setting.value = setting.default
         }
-        this.selectedDevices.push(device)
+        this.selectedDevices.push(lodash.cloneDeep(device))
         this.onDevicesUpdate()
       }
     },
 
     closeSettingsModal() {
       this.modalDevice = null
+    },
+
+    onSaveSettingsClick(deviceSettings) {
+      this.selectedDevices = this.selectedDevices.map(device => {
+        if (device._id === this.modalDevice._id) {
+          return {
+            ...device,
+            settings: deviceSettings
+          }
+        }
+        return device
+      })
+      this.closeSettingsModal()
+      this.onDevicesUpdate()
     },
 
     removeSelectedDevice(deviceIndex) {
