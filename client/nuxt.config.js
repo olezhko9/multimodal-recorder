@@ -18,7 +18,7 @@ export default {
       { name: 'format-detection', content: 'telephone=no' }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/brain.webp' }
+      { rel: 'icon', type: 'image/x-icon', href: '/brain_logo.webp' }
     ]
   },
 

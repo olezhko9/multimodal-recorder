@@ -2,7 +2,7 @@
   <div class="page">
     <b-navbar type="is-primary">
       <template #brand>
-        <b-navbar-item tag="router-link" :to="{ path: '/' }">
+        <b-navbar-item tag="a" href="/">
           <img src="/logo.png">
         </b-navbar-item>
       </template>
