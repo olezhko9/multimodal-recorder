@@ -3,7 +3,7 @@ from flask_cors import CORS
 from mongoengine import connect
 
 from service import device_service
-from api import device_api, research_api
+from api import device_api, research_api, record_api
 from devices import DeviceManager
 from recorder import DataRecorder
 from utils import MongoJsonEncoder
@@ -23,35 +23,7 @@ data_recorder = DataRecorder(device_manager)
 
 app.register_blueprint(device_api(device_manager))
 app.register_blueprint(research_api())
-
-
-@app.route("/record/start", methods=['POST'])
-def start_record():
-    try:
-        data_recorder.start_record()
-    except Exception as err:
-        print(err)
-        data_recorder.stop_record()
-        device_manager.stop_and_remove_devices()
-        return "Error when trying connect to device", 500
-
-    return jsonify(True)
-
-
-@app.route("/record/pause", methods=['POST'])
-def pause_record():
-    return jsonify(True)
-
-
-@app.route("/record/unpause", methods=['POST'])
-def unpause_record():
-    return jsonify(True)
-
-
-@app.route("/record/stop", methods=['POST'])
-def stop_record():
-    data_recorder.stop_record()
-    return jsonify(True)
+app.register_blueprint(record_api(device_manager, data_recorder))
 
 
 @app.route('/fs/directory/open', methods=['POST'])

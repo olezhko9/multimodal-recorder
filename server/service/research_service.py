@@ -1,6 +1,6 @@
 from model.reasearch import Research
-from model.research_record import ResearchRecord
 from bson import ObjectId
+from config import config
 
 
 def get_researches():
@@ -20,6 +20,6 @@ def delete_research(research_id):
         research.delete()
 
 
-def get_records(research_id):
-    records = ResearchRecord.objects(research_id=research_id)
-    return [record.to_mongo() for record in records]
+def get_research_dir(research_id):
+    data_dir = config.get('data_dir')
+    return f'{data_dir}/{research_id}'
