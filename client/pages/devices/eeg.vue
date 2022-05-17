@@ -52,7 +52,7 @@ export default {
         Plotly.newPlot(graph, traces, layout);
 
         let sseOpenedOnce = false
-        this.sse = new EventSource("http://localhost:5000/stream?device=openbci_cython")
+        this.sse = new EventSource("http://localhost:5000/device/stream?device=openbci_cython")
 
         this.sse.onopen = function () {
           console.log('sse open')

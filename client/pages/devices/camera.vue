@@ -8,7 +8,7 @@ export default {
 
   data() {
     return {
-      sseUrl: 'http://127.0.0.1:5000/stream?device=camera'
+      sseUrl: 'http://127.0.0.1:5000/device/stream?device=camera'
     }
   },
 
