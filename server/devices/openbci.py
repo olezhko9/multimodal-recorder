@@ -74,12 +74,17 @@ class OpenBCIBoard(Device):
                 if len(self.buffer[0]) > self.max_buffer_size:
                     buffer = self.buffer
                     self.buffer = None
-                    return buffer
 
-        return None
+                    return buffer, self.should_save_data(buffer)
+
+        return None, False
 
     def format_to_sse(self, data):
         return data.tolist()
+
+    def should_save_data(self, data):
+        return True
+
 
 
 if __name__ == '__main__':

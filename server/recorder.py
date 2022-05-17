@@ -1,6 +1,5 @@
 import threading
 import time
-import pathlib
 import numpy as np
 import utils.flie_system as fs
 
@@ -53,8 +52,9 @@ class DataRecorder(threading.Thread):
                 cv2.imwrite(f'{self.base_path}/{device_id}/{name}.jpg', data)
             elif device_id == 'openbci_cython':
                 data = np.transpose(data)
-                with open(f'{self.base_path}/{device_id}/{now_string}.csv', 'a') as csv_file:
-                    np.savetxt(csv_file, data, delimiter=',', fmt='%f')
+                if self.base_path:
+                    with open(f'{self.base_path}/{device_id}/{now_string}.csv', 'a') as csv_file:
+                        np.savetxt(csv_file, data, delimiter=',', fmt='%f')
 
     def is_recording(self):
         return self._recording

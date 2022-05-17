@@ -1,3 +1,5 @@
+import traceback
+
 from flask import Blueprint, request, jsonify, Response
 from service import device_service
 
@@ -24,6 +26,7 @@ def get_device_api(device_manager):
             device_manager.add_and_run_device(device_id, device_params)
             device_manager.read_data()
         except Exception:
+            traceback.print_exc()
             device_manager.stop_and_remove_devices()
             return "Error when trying connect to device", 500
 

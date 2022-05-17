@@ -82,9 +82,10 @@ class DeviceManager(threading.Thread):
             for device_id in list(self._devices):
                 device = self.get_device(device_id)
                 try:
-                    data = device.get_data()
+                    data, should_save = device.get_data()
                     if data is not None:
-                        self.read_queue.put((device_id, data))
+                        if should_save:
+                            self.read_queue.put((device_id, data))
 
                         if self._streamingDevices.get(device_id, None):
                             self.stream_queue.put((device_id, device.format_to_sse(data)))
