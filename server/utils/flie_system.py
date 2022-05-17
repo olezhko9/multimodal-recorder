@@ -32,3 +32,7 @@ def delete_directory(path):
 
     shutil.rmtree(path)
     return True
+
+
+def create_directory(path):
+    return pathlib.Path(path).mkdir(parents=True, exist_ok=True)

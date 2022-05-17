@@ -2,6 +2,7 @@ import threading
 import time
 import pathlib
 import numpy as np
+import utils.flie_system as fs
 
 from cv2 import cv2
 from config import config
@@ -26,7 +27,7 @@ class DataRecorder(threading.Thread):
         self.base_path = f'{data_dir}/{research_id}/{record_id}'
 
         for device in devices:
-            pathlib.Path(f'{self.base_path}/{device}').mkdir(parents=True, exist_ok=True)
+            fs.create_directory(f'{self.base_path}/{device}')
 
         if not self.is_alive():
             self._recording = True
