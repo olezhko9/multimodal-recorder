@@ -26,11 +26,18 @@
         {{ new Date(props.row.created_at).toLocaleString() }}
       </b-table-column>
 
-      <b-table-column v-slot="props" field="" label="Открыть папку" centered>
+      <b-table-column v-slot="props" field="">
+        <b-tooltip label="Открыть папку">
+          <b-button
+            type="is-primary"
+            icon-left="folder"
+            @click="openDirectory(props.row.directory)">
+          </b-button>
+        </b-tooltip>
         <b-button
-          type="is-primary"
-          icon-left="folder"
-          @click="openDirectory(props.row.directory)">
+          type="is-danger"
+          icon-left="delete"
+          @click="onRecordDeleteClick(props.row)">
         </b-button>
       </b-table-column>
 
@@ -63,6 +70,7 @@
 
 <script>
 import { mapActions, mapState, mapGetters } from "vuex"
+import { notifyAfter } from "@/modules/notification-decorators"
 
 export default {
   name: "records",
@@ -70,7 +78,6 @@ export default {
   data() {
     return {
       research: null,
-      records: [],
       perPage: 10,
     }
   },
@@ -78,6 +85,9 @@ export default {
   computed: {
     ...mapState('research', {
       researches: state => state.researches,
+    }),
+    ...mapState('record', {
+      records: state => state.researchRecords,
     }),
     ...mapGetters('research', [
       'researchById'
@@ -90,7 +100,7 @@ export default {
 
   async mounted() {
     !this.researches.length && await this.getResearches()
-    this.records = await this.getResearchRecords({ researchId: this.researchId })
+    await this.getResearchRecords({ researchId: this.researchId })
 
     this.research = this.researchById(this.researchId)
   },
@@ -98,13 +108,21 @@ export default {
   methods: {
     ...mapActions('research', [
       'getResearches',
+    ]),
+    ...mapActions('record', [
       'getResearchRecords',
+      'deleteRecord',
     ]),
 
     async openDirectory(directory) {
       return this.$axios.$post('/fs/directory/open', {
         directory
       })
+    },
+
+    @notifyAfter('Успешно')
+    async onRecordDeleteClick(record) {
+      return this.deleteRecord({ recordId: record._id })
     }
   }
 }

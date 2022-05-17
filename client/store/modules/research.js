@@ -1,6 +1,5 @@
 const state = () => ({
   researches: [],
-  researchRecords: [],
 })
 
 const getters = {
@@ -21,10 +20,6 @@ const mutations = {
   REMOVE_RESEARCH(state, researchId) {
     state.researches = state.researches.filter(r => r._id !== researchId)
   },
-
-  SET_RECORDS(state, records) {
-    state.researchRecords = records
-  }
 }
 
 const actions = {
@@ -48,10 +43,6 @@ const actions = {
 
     return res
   },
-
-  async getResearchRecords({ commit }, { researchId }) {
-    return this.$axios.$get(`/research/${researchId}/records`)
-  }
 }
 
 export default {

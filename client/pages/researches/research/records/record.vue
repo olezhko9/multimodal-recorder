@@ -157,7 +157,7 @@ export default {
 
     @notifyAfter('Запись начата')
     async onStartRecordClick() {
-      return this.startRecord()
+      return this.startRecord({ researchId: this.researchId })
     },
 
     @notifyAfter('Запись остановлена')
