@@ -30,7 +30,9 @@ class OpenBCIBoard(Device):
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
         self.timestamp_channel = self.board.get_timestamp_channel(self.board_id)
         self.eeg_channels = self.board.get_eeg_channels(self.board_id)
-        # print(self.sampling_rate, self.eeg_channels, self.timestamp_channel)
+        print('board eeg channels:', self.eeg_channels)
+        print('board timestamp channel:', self.timestamp_channel)
+        self.channels = np.append(self.eeg_channels, self.timestamp_channel)
 
         self.buffer = None
         self.max_buffer_size = self.sampling_rate // 4
@@ -64,9 +66,12 @@ class OpenBCIBoard(Device):
         self.board.release_session()
 
     def get_data(self):
+        # берем все данные из платы и удаляем их из буфера платы
         board_data = self.board.get_board_data()
 
         if len(board_data[0]):
+            board_data = board_data[self.channels]
+
             if self.buffer is None:
                 self.buffer = board_data
             else:
@@ -84,7 +89,6 @@ class OpenBCIBoard(Device):
 
     def should_save_data(self, data):
         return True
-
 
 
 if __name__ == '__main__':

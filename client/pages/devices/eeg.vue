@@ -22,7 +22,7 @@ export default {
       if (isLoaded) {
         const graph = document.getElementById('graph');
 
-        const eegChannelsCount = 15
+        const eegChannelsCount = 16 // TODO: получать кол-во каналов с сервера
         let traces = []
 
         for (let i = 0; i < eegChannelsCount; i++) {
@@ -72,10 +72,12 @@ export default {
 
         this.sse.addEventListener("upd", function (event) {
           let eegData = JSON.parse(event.data);
+          const columnsCount = eegData.length
+          const timestampChannel = columnsCount - 1
 
           const n = 250 * 3
-          eegData[30] = eegData[30].map(time => Math.trunc(time * 1000))
-          timestamps = timestamps.concat(eegData[30]).slice(-n)
+          eegData[timestampChannel] = eegData[timestampChannel].map(time => Math.trunc(time * 1000))
+          timestamps = timestamps.concat(eegData[timestampChannel]).slice(-n)
 
           const now = +new Date()
           const last = (timestamps[timestamps.length - 1] - now) / 1000
@@ -83,7 +85,7 @@ export default {
 
           for (let i = 0; i < eegChannelsCount; i++) {
             traces[i].x = timeDiffs
-            traces[i].y = traces[i].y.concat(eegData[i + 1]).slice(-n) // i's channel data
+            traces[i].y = traces[i].y.concat(eegData[i]).slice(-n) // i's channel data
           }
           Plotly.react(graph, traces, layout);
         });
