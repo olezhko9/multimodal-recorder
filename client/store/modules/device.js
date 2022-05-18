@@ -31,19 +31,25 @@ const actions = {
     return res
   },
 
-  async startDevice({ commit }, device) {
-    const res = await this.$axios.$post('/device/start', device)
+  async startDevice({ commit }, devices) {
+    if (!Array.isArray(devices)) devices = [devices]
+    const res = await this.$axios.$post('/device/start', devices)
     if (res === true) {
-      commit('ADD_STARTED_DEVICE', device.device_id)
+      for (let device of devices) {
+        commit('ADD_STARTED_DEVICE', device.device_id)
+      }
     }
 
     return res
   },
 
-  async stopDevice({ commit }, { deviceId }) {
-    const res = await this.$axios.$post('/device/stop', { device_id: deviceId })
+  async stopDevice({ commit }, devices) {
+    if (!Array.isArray(devices)) devices = [devices]
+    const res = await this.$axios.$post('/device/stop', devices)
     if (res === true) {
-      commit('REMOVE_STARTED_DEVICE', deviceId)
+      for (let device of devices) {
+        commit('REMOVE_STARTED_DEVICE', device.device_id)
+      }
     }
 
     return res

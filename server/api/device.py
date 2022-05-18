@@ -8,23 +8,30 @@ def get_device_api(device_manager):
     router = Blueprint('device_router', __name__)
 
     @router.route("/devices")
-    def devices():
+    def get_devices():
         res = device_service.get_devices()
         return jsonify(res)
 
     @router.route('/device/start', methods=['POST'])
     def start_device():
         try:
-            device = request.json
-            device_id = device['device_id']
+            devices = request.json
+            if type(devices) is not list:
+                devices = [devices]
 
-            device_params = {}
-            if device.get('settings'):
-                for param in device['settings']:
-                    device_params[param['name']] = param['value']
+            for device in devices:
+                device_id = device['device_id']
 
-            device_manager.add_and_run_device(device_id, device_params)
-            device_manager.read_data()
+                if device_manager.get_device(device_id) is not None:
+                    continue
+
+                device_params = {}
+                if device.get('settings'):
+                    for param in device['settings']:
+                        device_params[param['name']] = param['value']
+
+                device_manager.add_and_run_device(device_id, device_params)
+                device_manager.read_data()
         except Exception:
             traceback.print_exc()
             device_manager.stop_and_remove_devices()
@@ -35,9 +42,15 @@ def get_device_api(device_manager):
     @router.route('/device/stop', methods=['POST'])
     def stop_device():
         try:
-            device_id = request.json['device_id']
-            device_manager.stop_and_remove_device(device_id)
+            devices = request.json
+            if type(devices) is not list:
+                devices = [devices]
+
+            for device in devices:
+                device_id = device['device_id']
+                device_manager.stop_and_remove_device(device_id)
         except:
+            traceback.print_exc()
             return "Error when trying stop device", 500
 
         return jsonify(True)

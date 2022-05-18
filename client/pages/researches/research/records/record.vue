@@ -41,6 +41,7 @@
                     <b-button
                       type="is-danger"
                       icon-left="stop"
+                      :disabled="recordState === 'ACTIVE'"
                       @click="onStopDeviceClick(device)">
                     </b-button>
                   </b-tooltip>
@@ -54,6 +55,24 @@
             @close="modalDevice = null"
             @save="onSaveSettingsClick"
           />
+        </div>
+
+        <div class="buttons">
+          <b-button
+            v-if="startedDevices.length === 0"
+            type="is-primary"
+            icon-left="play"
+            @click="onStartDeviceClick(null)">
+            Запустить все устройства
+          </b-button>
+          <b-button
+            v-else-if="startedDevices.length === researchDevices.length"
+            :disabled="recordState === 'ACTIVE'"
+            type="is-danger"
+            icon-left="stop"
+            @click="onStopDeviceClick(null)">
+            Остановить все устройства
+          </b-button>
         </div>
       </div>
     </div>
@@ -80,7 +99,7 @@
       </b-button>
       <b-button
         v-if="recordState === 'ACTIVE'"
-        type="is-primary"
+        type="is-danger"
         icon-left="stop"
         @click="onStopRecordClick">
         Остановить запись
@@ -160,12 +179,20 @@ export default {
 
     @notifyAfter('Успешно')
     async onStartDeviceClick(device) {
-      return this.startDevice(device)
+      if (!device) {
+        // запускаем все устройства
+        return this.startDevice(this.researchDevices)
+      } else {
+        return this.startDevice(device)
+      }
     },
 
     @notifyAfter('Успешно')
     async onStopDeviceClick(device) {
-      return this.stopDevice({ deviceId: device.device_id })
+      if (!device) {
+        return this.stopDevice(this.researchDevices.map(device => ({ device_id: device.device_id })))
+      }
+      return this.stopDevice({ device_id: device.device_id })
     },
 
     @notifyAfter('Запись начата')

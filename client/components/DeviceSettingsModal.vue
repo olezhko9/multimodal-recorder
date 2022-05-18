@@ -5,7 +5,7 @@
     has-modal-card
     :destroy-on-hide="true"
     aria-modal
-    @close="modalDevice = null">
+    @close="onCloseClick">
     <form v-if="modalDevice">
       <div class="modal-card" style="width: 640px">
         <header class="modal-card-head">

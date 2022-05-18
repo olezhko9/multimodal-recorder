@@ -60,7 +60,7 @@ class DeviceManager(threading.Thread):
         return self._devices
 
     def get_device(self, device_id):
-        return self._devices.get(device_id)
+        return self._devices.get(device_id, None)
 
     def run(self):
         while True:
