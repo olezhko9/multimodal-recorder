@@ -18,7 +18,7 @@ class Camera(Device):
         self.last_frame = None
         self.frame_number = 0
 
-    def start_record(self):
+    def start(self):
         logging.info("Camera start")
         if self.cap is None or not self.cap.isOpened():
             self.cap = cv2.VideoCapture(0)
@@ -26,7 +26,7 @@ class Camera(Device):
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
 
-        super(Camera, self).start_record()
+        super(Camera, self).start()
 
     def run(self):
         while True:
@@ -40,12 +40,12 @@ class Camera(Device):
                 self.last_frame = frame
                 self.frame_number += 1
 
-    def pause_record(self):
+    def pause(self):
         pass
 
-    def stop_record(self):
+    def stop(self):
         logging.info("Camera stop")
-        super(Camera, self).stop_record()
+        super(Camera, self).stop()
 
         if self.cap is not None:
             self.cap.release()

@@ -17,10 +17,10 @@ class ArduinoUNO(Device):
         self.buffer = None
         self.max_buffer_size = 50
 
-    def start_record(self):
+    def start(self):
         self.board = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=0.05)
         time.sleep(2)  # необходима пара секунд для инициализации порта
-        super(ArduinoUNO, self).start_record()
+        super(ArduinoUNO, self).start()
 
     def run(self):
         while True:
@@ -41,11 +41,11 @@ class ArduinoUNO(Device):
             except UnicodeDecodeError:
                 pass
 
-    def pause_record(self):
+    def pause(self):
         pass
 
-    def stop_record(self):
-        super(ArduinoUNO, self).stop_record()
+    def stop(self):
+        super(ArduinoUNO, self).stop()
         self.board.close()
         self.buffer = None
         self.board = None

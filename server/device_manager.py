@@ -30,12 +30,12 @@ class DeviceManager(threading.Thread):
 
     def add_and_run_device(self, device_id, device_options):
         self.add_device(device_id, device_options)
-        self._devices[device_id].start_record()
+        self._devices[device_id].start()
 
     def stop_device(self, device_id):
         try:
             self.stop_stream(device_id)
-            self._devices[device_id].stop_record()
+            self._devices[device_id].stop()
         except Exception:
             pass
 

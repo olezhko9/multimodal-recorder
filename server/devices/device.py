@@ -10,16 +10,16 @@ class Device(ABC, threading.Thread):
         self._stop_event = threading.Event()
 
     @abstractmethod
-    def start_record(self):
+    def start(self):
         self.started = True
         threading.Thread.start(self)
 
     @abstractmethod
-    def pause_record(self):
+    def pause(self):
         pass
 
     @abstractmethod
-    def stop_record(self):
+    def stop(self):
         self._stop_event.set()
         self.started = False
 

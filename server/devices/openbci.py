@@ -37,14 +37,14 @@ class OpenBCIBoard(Device):
         self.buffer = None
         self.max_buffer_size = self.sampling_rate // 4
 
-    def start_record(self):
+    def start(self):
         logging.info("Board start")
         if not self.board.is_prepared():
             self.board.prepare_session()
             self.board.start_stream()
             BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
 
-        super(OpenBCIBoard, self).start_record()
+        super(OpenBCIBoard, self).start()
 
     def run(self):
         pass
@@ -52,12 +52,12 @@ class OpenBCIBoard(Device):
         #     data = self.board.get_current_board_data(1)
         #     timestamp = int(data[self.timestamp_channel][0])
 
-    def pause_record(self):
+    def pause(self):
         logging.info("Board pause")
 
-    def stop_record(self):
+    def stop(self):
         logging.info("Board stop")
-        super(OpenBCIBoard, self).stop_record()
+        super(OpenBCIBoard, self).stop()
         try:
             self.board.stop_stream()
         except BrainFlowError:
