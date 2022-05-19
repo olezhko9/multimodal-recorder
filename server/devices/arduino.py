@@ -20,12 +20,17 @@ class ArduinoUNO(Device):
     def start(self):
         self.board = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=0.05)
         time.sleep(2)  # необходима пара секунд для инициализации порта
+        if not self.board.isOpen():
+            raise Exception("Can't connect to Arduino port")
+
         super(ArduinoUNO, self).start()
 
     def run(self):
         while True:
             if self.board is None:
-                continue
+                pass
+            if self.board.inWaiting() == 0:
+                pass
 
             try:
                 data = int(self.board.readline().decode().rstrip())
