@@ -1,87 +1,99 @@
-<template>
+<template xmlns="http://www.w3.org/1999/html">
   <div>
     <h1 class="title is-4">Новая запись</h1>
 
-    <div v-if="research" class="mb-4">
-      <div v-if="researchDevices && researchDevices.length">
-        <span class="label mb-3">Устройства</span>
-        <div class="columns is-multiline">
-          <div
-            v-for="(device, index) in researchDevices"
-            :key="device.id"
-            class="column is-6">
-            <div class="box">
-              <div class="box-body">
-                <div class="device-card__header">
-                  <b>{{ device.name }}</b>
-                </div>
-                <div class="device-card__buttons">
-                  <b-button
-                    :disabled="isDeviceStarted(device.device_id)"
-                    type="is-primary"
-                    icon-left="cog"
-                    @click="modalDevice = device">
-                  </b-button>
-                  <b-button
-                    v-if="isDeviceStarted(device.device_id)"
-                    type="is-primary"
-                    icon-left="eye"
-                    @click="openDeviceWindow(device)">
-                  </b-button>
-                  <b-tooltip
-                    v-if="!isDeviceStarted(device.device_id)"
-                    label="Запустить устройство">
+    <section v-if="recordState !== 'ACTIVE'" id="record-prepare">
+      <div v-if="research" class="mb-4">
+        <div v-if="researchDevices && researchDevices.length">
+          <span class="label mb-3">Устройства</span>
+          <div class="columns is-multiline">
+            <div
+              v-for="(device, index) in researchDevices"
+              :key="device.id"
+              class="column is-6">
+              <div class="box">
+                <div class="box-body">
+                  <div class="device-card__header">
+                    <b>{{ device.name }}</b>
+                  </div>
+                  <div class="device-card__buttons">
                     <b-button
+                      :disabled="isDeviceStarted(device.device_id)"
                       type="is-primary"
-                      icon-left="play"
-                      @click="onStartDeviceClick(device)">
+                      icon-left="cog"
+                      @click="modalDevice = device">
                     </b-button>
-                  </b-tooltip>
-                  <b-tooltip v-else label="Остановить устройство">
                     <b-button
-                      type="is-danger"
-                      icon-left="stop"
-                      :disabled="recordState === 'ACTIVE'"
-                      @click="onStopDeviceClick(device)">
+                      v-if="isDeviceStarted(device.device_id)"
+                      type="is-primary"
+                      icon-left="eye"
+                      @click="openDeviceWindow(device)">
                     </b-button>
-                  </b-tooltip>
+                    <b-tooltip
+                      v-if="!isDeviceStarted(device.device_id)"
+                      label="Запустить устройство">
+                      <b-button
+                        type="is-primary"
+                        icon-left="play"
+                        @click="onStartDeviceClick(device)">
+                      </b-button>
+                    </b-tooltip>
+                    <b-tooltip v-else label="Остановить устройство">
+                      <b-button
+                        type="is-danger"
+                        icon-left="stop"
+                        :disabled="recordState === 'ACTIVE'"
+                        @click="onStopDeviceClick(device)">
+                      </b-button>
+                    </b-tooltip>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <device-settings-modal
+              :device="modalDevice"
+              @close="modalDevice = null"
+              @save="onSaveSettingsClick"
+            />
           </div>
 
-          <device-settings-modal
-            :device="modalDevice"
-            @close="modalDevice = null"
-            @save="onSaveSettingsClick"
-          />
-        </div>
-
-        <div class="buttons">
-          <b-button
-            v-if="startedDevices.length === 0"
-            type="is-primary"
-            icon-left="play"
-            @click="onStartDeviceClick(null)">
-            Запустить все устройства
-          </b-button>
-          <b-button
-            v-else-if="startedDevices.length === researchDevices.length"
-            :disabled="recordState === 'ACTIVE'"
-            type="is-danger"
-            icon-left="stop"
-            @click="onStopDeviceClick(null)">
-            Остановить все устройства
-          </b-button>
+          <div class="buttons">
+            <b-button
+              v-if="startedDevices.length === 0"
+              type="is-primary"
+              icon-left="play"
+              @click="onStartDeviceClick(null)">
+              Запустить все устройства
+            </b-button>
+            <b-button
+              v-else-if="startedDevices.length === researchDevices.length"
+              :disabled="recordState === 'ACTIVE'"
+              type="is-danger"
+              icon-left="stop"
+              @click="onStopDeviceClick(null)">
+              Остановить все устройства
+            </b-button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <b-message v-if="!canRecord" type="is-danger">
-      Запустите все устройства, чтобы иметь возможность начать запись
-    </b-message>
+      <b-message v-if="!canRecord" type="is-danger">
+        Запустите все устройства, чтобы иметь возможность начать запись
+      </b-message>
+    </section>
+    <section v-else>
+      <iframe
+        ref="frame"
+        v-if="frameSrc"
+        :src="frameSrc"
+        frameborder="0"
+        class="box"
+        @load="onFrameLoaded">
+      </iframe>
+    </section>
 
-    <div class="buttons buttons--space-btw">
+    <div class="buttons buttons--space-btw mt-4">
       <b-button
         type="is-danger"
         outlined
@@ -125,6 +137,9 @@ export default {
       research: null,
       modalDevice: null,
       researchDevices: [],
+
+      frameSrc: '',
+      frameLoaded: false,
     }
   },
 
@@ -195,8 +210,25 @@ export default {
       return this.stopDevice({ device_id: device.device_id })
     },
 
+    onFrameLoaded() {
+      const frame = this.$refs.frame
+      const msg = JSON.stringify({
+        research: this.research
+      })
+      frame.contentWindow.postMessage(msg, '*')
+      this.frameLoaded = true
+      console.log('frame loaded')
+    },
+
+    loadFrame() {
+      this.frameSrc = this.$axios.defaults.baseURL
+        + '/test/index.html/'
+        + '?rand=' + Math.round(Math.random() * 10000000) // to prevent caching
+    },
+
     @notifyAfter('Запись начата')
     async onStartRecordClick() {
+      this.loadFrame()
       return this.startRecord({ researchId: this.researchId })
     },
 
@@ -226,5 +258,9 @@ export default {
 </script>
 
 <style lang="css" scoped>
-
+  iframe {
+    width: 100%;
+    min-height: 500px;
+    padding: 0;
+  }
 </style>
