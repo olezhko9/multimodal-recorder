@@ -9,12 +9,11 @@ class DeviceManager(threading.Thread):
     def __init__(self, all_devices):
         threading.Thread.__init__(self)
         self.all_devices = all_devices
-        self._devices = {}
-        self._isProcessingData = False
-        self.stream_queue = Queue()
-        self.read_queue = Queue()
-        self._streamingDevices = {}
         self._isStartedOnce = False
+        self._isProcessingData = False
+        self._devices = {}
+        self._stream_queues = {}
+        self._read_queue = Queue()
 
     def add_device(self, device_id, device_options=None):
         if device_options is None:
@@ -74,12 +73,12 @@ class DeviceManager(threading.Thread):
                     data, should_save = device.get_data()
                     if data is not None:
                         if should_save:
-                            self.read_queue.put((device_id, data))
+                            self._read_queue.put((device_id, data))
 
-                        if self._streamingDevices.get(device_id, None):
-                            self.stream_queue.put((device_id, device.format_to_sse(data)))
+                        if self._stream_queues.get(device_id, None):
+                            self._stream_queues[device_id].put(device.format_to_sse(data))
                 except Exception:  # probably device not started
-                    print(traceback.print_exc())
+                    traceback.print_exc()
                     pass
 
     def read_data(self):
@@ -90,14 +89,17 @@ class DeviceManager(threading.Thread):
         if not self._isProcessingData:
             self._isProcessingData = True
 
-        return self.read_queue
+        return self._read_queue
 
     def start_stream(self, device_id):
-        self._streamingDevices[device_id] = True
-        return self.stream_queue
+        self._stream_queues[device_id] = Queue()
+        return self._stream_queues
 
     def stop_stream(self, device_id):
-        self._streamingDevices.pop(device_id, None)
+        self._stream_queues.pop(device_id, None)
+
+    def get_device_stream(self, device_id):
+        return self._stream_queues.get(device_id)
 
     def get_data_stream(self):
-        return self.read_queue
+        return self._read_queue

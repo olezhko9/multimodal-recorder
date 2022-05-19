@@ -75,12 +75,14 @@ def get_device_api(device_manager):
         def generator():
             while True:
                 try:
-                    item_device_id, data = device_manager.stream_queue.get()
-                    if item_device_id == 'camera':
-                        yield (b'--frame\r\n'
-                               b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
-                    elif item_device_id == 'openbci_cython' or device_id == 'arduino_uno':
-                        yield f"event:{'upd'}\ndata:{data}\n\n"
+                    device_stream = device_manager.get_device_stream(device_id)
+                    if device_stream is not None:
+                        data = device_stream.get()
+                        if device_id == 'camera':
+                            yield (b'--frame\r\n'
+                                   b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
+                        elif device_id == 'openbci_cython' or device_id == 'arduino_uno':
+                            yield f"event:{'upd'}\ndata:{data}\n\n"
                 except GeneratorExit:
                     print(f'Stop stream for {device_id}')
                     device_manager.stop_stream(device_id)
