@@ -44,5 +44,10 @@ def put_event():
     return jsonify(True)
 
 
+@app.errorhandler(Exception)
+def handle_exception(err):
+    return str(err), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
