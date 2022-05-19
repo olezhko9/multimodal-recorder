@@ -50,7 +50,7 @@ class RecordManager(threading.Thread):
             if device_id == 'camera':
                 name = "frame_" + str(round(time.time() * 1000))
                 cv2.imwrite(f'{self.base_path}/{device_id}/{name}.jpg', data)
-            elif device_id == 'openbci_cython':
+            elif device_id == 'openbci_cython' or device_id == 'arduino_uno':
                 data = np.transpose(data)
                 if self.base_path:
                     with open(f'{self.base_path}/{device_id}/{now_string}.csv', 'a') as csv_file:

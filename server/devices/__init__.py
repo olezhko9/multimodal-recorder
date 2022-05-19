@@ -1,5 +1,6 @@
 from .openbci import OpenBCIBoard
 from .camera import Camera
+from .arduino import ArduinoUNO
 
 
 def get_device_class(all_devices, device_id):

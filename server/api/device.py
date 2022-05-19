@@ -67,7 +67,7 @@ def get_device_api(device_manager):
 
         if device_id == 'camera':
             mimetype = 'multipart/x-mixed-replace; boundary=frame'
-        elif device_id == 'openbci_cython':
+        elif device_id == 'openbci_cython' or device_id == 'arduino_uno':
             mimetype = 'text/event-stream'
 
         device_manager.start_stream(device_id)
@@ -79,9 +79,10 @@ def get_device_api(device_manager):
                     if item_device_id == 'camera':
                         yield (b'--frame\r\n'
                                b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
-                    elif item_device_id == 'openbci_cython':
+                    elif item_device_id == 'openbci_cython' or device_id == 'arduino_uno':
                         yield f"event:{'upd'}\ndata:{data}\n\n"
                 except GeneratorExit:
+                    print(f'Stop stream for {device_id}')
                     device_manager.stop_stream(device_id)
                     return
 

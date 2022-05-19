@@ -1,4 +1,5 @@
 import threading
+import traceback
 
 from queue import Queue
 from devices import get_device_class
@@ -78,6 +79,7 @@ class DeviceManager(threading.Thread):
                         if self._streamingDevices.get(device_id, None):
                             self.stream_queue.put((device_id, device.format_to_sse(data)))
                 except Exception:  # probably device not started
+                    print(traceback.print_exc())
                     pass
 
     def read_data(self):
