@@ -9,11 +9,14 @@ from record_manager import RecordManager
 from utils import MongoJsonEncoder
 import utils.flie_system as fs
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='frames', static_url_path='')
 app.config['SECRET_KEY'] = 'secret!'
 app.config['DEBUG'] = True
 
-CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:3000", "http://localhost:3000"]}})
+CORS(app, resources={r"/*": {"origins": [
+    "http://127.0.0.1:3000", "http://localhost:3000",
+    "http://127.0.0.1:5000", "http://localhost:5000"
+]}})
 
 connect(host="mongodb://localhost:27017/test")
 app.json_encoder = MongoJsonEncoder
@@ -31,6 +34,14 @@ def fs_open_dir():
     params = request.json
     res = fs.open_directory(params.get('directory', None))
     return jsonify(res)
+
+
+@app.route('/event', methods=['POST'])
+def put_event():
+    event = request.json
+    if event.get('name'):
+        record_manager.set_last_event(event['name'], event.get('data'))
+    return jsonify(True)
 
 
 if __name__ == "__main__":
