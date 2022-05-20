@@ -20,7 +20,7 @@ def open_directory(path):
     if pipe is not None:
         res, err = pipe.communicate()
         if len(err):
-            return False
+            raise Exception("Can't open directory")
 
     return True
 

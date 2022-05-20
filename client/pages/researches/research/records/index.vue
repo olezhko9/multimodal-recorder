@@ -139,6 +139,7 @@ export default {
       'getSubjects',
     ]),
 
+    @notifyAfter('Открыто')
     async openDirectory(directory) {
       return this.$axios.$post('/fs/directory/open', {
         directory
