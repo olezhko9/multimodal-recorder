@@ -31,8 +31,8 @@ class RecordManager(threading.Thread):
 
         fs.create_directory(f'{self.record_dir}/events')
 
+        self._recording = True
         if not self.is_alive():
-            self._recording = True
             threading.Thread.start(self)
             return True
 
