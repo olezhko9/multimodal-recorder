@@ -95,15 +95,18 @@
         Запустите все устройства, чтобы иметь возможность начать запись
       </b-message>
     </section>
-    <section v-else>
+    <section v-else-if="frameSrc">
       <iframe
         ref="frame"
-        v-if="frameSrc"
         :src="frameSrc"
         frameborder="0"
         class="box"
         @load="onFrameLoaded">
       </iframe>
+    </section>
+    <section class="box is-flex is-flex-direction-column is-align-items-center" v-else>
+      <h2 class="title is-5">Запись начата. Следуйте программе исследования.</h2>
+      <img src="/brain_logo.webp" alt="" width="256">
     </section>
 
     <div class="buttons buttons--space-btw mt-4">
@@ -249,13 +252,13 @@ export default {
 
     loadFrame() {
       this.frameSrc = this.$axios.defaults.baseURL
-        + '/test/index.html/'
+        + `/${this.research.frame}/index.html/`
         + '?rand=' + Math.round(Math.random() * 10000000) // to prevent caching
     },
 
     @notifyAfter('Запись начата')
     async onStartRecordClick() {
-      this.loadFrame()
+      if (this.research.frame) this.loadFrame()
       return this.startRecord({ researchId: this.researchId, subjectId: this.subjectId })
     },
 

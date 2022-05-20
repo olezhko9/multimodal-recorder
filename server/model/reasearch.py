@@ -11,4 +11,6 @@ class Research(DynamicDocument):
     name = StringField(required=True, db_field='name')
     description = StringField(required=True)
     devices = ListField()
+    subjectForm = ListField()
+    frame = StringField()
     created_at = DateTimeField(required=True, default=datetime.datetime.utcnow)

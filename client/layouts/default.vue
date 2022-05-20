@@ -85,7 +85,7 @@ export default {
 }
 
 .container {
-  padding: 2.5rem 2rem;
+  padding: 2.5rem 2rem 4rem;
 }
 
 .logo {

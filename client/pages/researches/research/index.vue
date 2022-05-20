@@ -11,6 +11,12 @@
         <b-field label="Описание">
           <b-input v-model="research.description" type="textarea"></b-input>
         </b-field>
+
+        <b-field label="Фрейм эксперимента">
+          <b-select v-model="research.frame" expanded>
+            <option v-for="frame in frames" :key="frame" :value="frame">{{ frame }}</option>
+          </b-select>
+        </b-field>
       </b-tab-item>
 
       <b-tab-item label="Устройства">
@@ -79,6 +85,7 @@ export default {
           { name: 'Имя', type: 'string' },
           { name: 'Возраст', type: 'number' },
         ],
+        frame: null,
 
         pipelines: [
           {
@@ -97,7 +104,9 @@ export default {
             ]
           }
         ]
-      }
+      },
+
+      frames: [],
     }
   },
 
@@ -109,6 +118,7 @@ export default {
 
   async mounted() {
     !this.devices.length && await this.getDevices()
+    this.frames = await this.$axios.$get('/frame')
   },
 
   methods: {

@@ -1,13 +1,15 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from mongoengine import connect
-from os.path import isfile, join
+from os.path import isfile, isdir, join
 
 from service import device_service
 from api import device_api, research_api, record_api, subject_api
 from device_manager import DeviceManager
 from record_manager import RecordManager
 from utils import MongoJsonEncoder
+from config import config
+
 import utils.flie_system as fs
 
 app = Flask(__name__, static_folder='frames', static_url_path='')
@@ -51,6 +53,24 @@ def get_notebooks():
     notebooks_dir = './notebooks/original'
     notebooks = [f for f in fs.list_directory(notebooks_dir) if f.endswith('.ipynb') and isfile(join(notebooks_dir, f))]
     return jsonify(notebooks)
+
+
+@app.route("/frame")
+def get_frames():
+    frames_dir = config.get("frames_dir")
+    frames_dir_files = fs.list_directory(frames_dir)
+    frames = []
+    for file in frames_dir_files:
+        path = join(frames_dir, file)
+
+        if not isdir(path):
+            continue
+
+        frame_files = fs.list_directory(path)
+        if 'index.html' in frame_files:
+            frames.append(file)
+
+    return jsonify(frames)
 
 
 @app.errorhandler(Exception)

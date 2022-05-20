@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-breadcrumb size="is-medium">
-      <b-breadcrumb-item active>Мои исследования</b-breadcrumb-item>
+      <b-breadcrumb-item active>Исследования</b-breadcrumb-item>
     </b-breadcrumb>
 
     <div class="buttons">

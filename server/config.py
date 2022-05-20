@@ -1,3 +1,4 @@
 config = {
-    "data_dir": "./records"
+    "data_dir": "./records",
+    "frames_dir": "./frames",
 }
