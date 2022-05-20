@@ -1,6 +1,19 @@
 <template xmlns="http://www.w3.org/1999/html">
   <div>
-    <h1 class="title is-4">Новая запись</h1>
+    <b-breadcrumb size="is-medium">
+      <b-breadcrumb-item tag='router-link' to="/">Исследования [{{ research && research.name }}]</b-breadcrumb-item>
+      <b-breadcrumb-item
+        tag='router-link'
+        :to="{ path: '/researches/research/subjects', query: {researchId} }">
+        Испытуемые [{{ subjectName(subjectId) }}]
+      </b-breadcrumb-item>
+      <b-breadcrumb-item
+        tag='router-link'
+        :to="{ path: '/researches/research/records', query: {researchId, subjectId} }">
+        Записи
+      </b-breadcrumb-item>
+      <b-breadcrumb-item active>Новая запись</b-breadcrumb-item>
+    </b-breadcrumb>
 
     <section v-if="recordState !== 'ACTIVE'" id="record-prepare">
       <div v-if="research" class="mb-4">
@@ -98,7 +111,7 @@
         type="is-danger"
         outlined
         tag="router-link"
-        :to="{ path: '/researches/research/records', query: { researchId } }">
+        :to="{ path: '/researches/research/records', query: { researchId, subjectId } }">
         Назад
       </b-button>
       <b-button
@@ -154,15 +167,25 @@ export default {
     ...mapState('record', {
       recordState: state => state.recordState,
     }),
+    ...mapState('subject', {
+      subjects: state => state.subjects,
+    }),
     ...mapGetters('research', [
       'researchById'
     ]),
     ...mapGetters('device', [
       'isDeviceStarted'
     ]),
+    ...mapGetters('subject', [
+      'subjectName'
+    ]),
 
     researchId() {
       return this.$route.query.researchId
+    },
+
+    subjectId() {
+      return this.$route.query.subjectId
     },
 
     canRecord() {
@@ -173,6 +196,7 @@ export default {
   async mounted() {
     !this.devices.length && await this.getDevices()
     !this.researches.length && await this.getResearches()
+    !this.subjects.length && await this.getSubjects({ researchId: this.researchId })
 
     this.research = this.researchById(this.researchId)
     this.researchDevices = lodash.cloneDeep(this.research.devices)
@@ -190,6 +214,9 @@ export default {
     ...mapActions('record', [
       'startRecord',
       'stopRecord',
+    ]),
+    ...mapActions('subject', [
+      'getSubjects',
     ]),
 
     @notifyAfter('Успешно')
@@ -229,7 +256,7 @@ export default {
     @notifyAfter('Запись начата')
     async onStartRecordClick() {
       this.loadFrame()
-      return this.startRecord({ researchId: this.researchId })
+      return this.startRecord({ researchId: this.researchId, subjectId: this.subjectId })
     },
 
     @notifyAfter('Запись остановлена')

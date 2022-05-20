@@ -20,8 +20,11 @@ const mutations = {
 }
 
 const actions = {
-  async startRecord({ commit }, { researchId }) {
-    const res = await this.$axios.$post(`/research/${researchId}/record/start`, {})
+  async startRecord({ commit }, { researchId, subjectId }) {
+    const res = await this.$axios.$post(`/record/start`, {
+      research_id: researchId,
+      subject_id: subjectId,
+    })
     commit('SET_STATE', 'ACTIVE')
 
     return res
@@ -34,8 +37,8 @@ const actions = {
     return res
   },
 
-  async getResearchRecords({ commit }, { researchId }) {
-    const res = await this.$axios.$get(`/research/${researchId}/record`)
+  async getResearchRecords({ commit }, { researchId, subjectId }) {
+    const res = await this.$axios.$get(`/research/${researchId}/subject/${subjectId}/record`)
     commit('SET_RECORDS', res)
 
     return res

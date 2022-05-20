@@ -27,3 +27,8 @@ body {
   flex-direction: row;
   justify-content: space-between;
 }
+
+.table-buttons {
+  display: inline-flex;
+  gap: 5px;
+}

@@ -1,6 +1,8 @@
 <template>
   <div>
-    <h1 class="title is-4">Мои исследования</h1>
+    <b-breadcrumb size="is-medium">
+      <b-breadcrumb-item active>Мои исследования</b-breadcrumb-item>
+    </b-breadcrumb>
 
     <div class="buttons">
       <b-button
@@ -31,9 +33,10 @@
         <div class="box-buttons">
           <b-button
             type="is-primary"
-            icon-left="database"
+            icon-left="account-group"
             tag="router-link"
-            :to="{ path: '/researches/research/records', query: { researchId: research._id } }">
+            :to="{ path: '/researches/research/subjects', query: { researchId: research._id } }">
+            Испытуемые
           </b-button>
           <b-button type="is-danger" icon-left="delete" @click="onDeleteResearchClick(research._id)"></b-button>
         </div>

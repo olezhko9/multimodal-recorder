@@ -1,13 +1,21 @@
 <template>
   <div>
-    <h1 class="title is-4">Записи исследования "{{ research && research.name }}"</h1>
+    <b-breadcrumb size="is-medium">
+      <b-breadcrumb-item tag='router-link' to="/">Исследования [{{ research && research.name }}]</b-breadcrumb-item>
+      <b-breadcrumb-item
+        tag='router-link'
+        :to="{ path: '/researches/research/subjects', query: {researchId: this.researchId} }">
+        Испытуемые [{{ subjectName(subjectId) }}]
+      </b-breadcrumb-item>
+      <b-breadcrumb-item active>Записи</b-breadcrumb-item>
+    </b-breadcrumb>
 
     <div class="buttons">
       <b-button
         type="is-primary"
         icon-left="plus"
         tag="router-link"
-        :to="{ path: '/researches/research/records/record', query: { researchId } }">
+        :to="{ path: '/researches/research/records/record', query: { researchId, subjectId } }">
         Новая запись
       </b-button>
     </div>
@@ -27,7 +35,7 @@
       </b-table-column>
 
       <b-table-column v-slot="props" field="">
-        <b-tooltip label="Открыть папку">
+        <b-tooltip label="Открыть в проводнике">
           <b-button
             type="is-primary"
             icon-left="folder"
@@ -61,7 +69,7 @@
         type="is-danger"
         outlined
         tag="router-link"
-        to="/researches">
+        :to="{ path: '/researches/research/subjects', query: {researchId: this.researchId} }">
         Назад
       </b-button>
     </div>
@@ -78,6 +86,7 @@ export default {
   data() {
     return {
       research: null,
+      subject: null,
       perPage: 10,
     }
   },
@@ -86,23 +95,36 @@ export default {
     ...mapState('research', {
       researches: state => state.researches,
     }),
+    ...mapState('subject', {
+      subjects: state => state.subjects,
+    }),
     ...mapState('record', {
       records: state => state.researchRecords,
     }),
     ...mapGetters('research', [
       'researchById'
     ]),
+    ...mapGetters('subject', [
+      'subjectById',
+      'subjectName',
+    ]),
 
     researchId() {
       return this.$route.query.researchId
-    }
+    },
+
+    subjectId() {
+      return this.$route.query.subjectId
+    },
   },
 
   async mounted() {
     !this.researches.length && await this.getResearches()
-    await this.getResearchRecords({ researchId: this.researchId })
+    !this.subjects.length && await this.getSubjects({ researchId: this.researchId })
+    await this.getResearchRecords({ researchId: this.researchId, subjectId: this.subjectId })
 
     this.research = this.researchById(this.researchId)
+    this.subject = this.subjectById(this.subjectId)
   },
 
   methods: {
@@ -112,6 +134,9 @@ export default {
     ...mapActions('record', [
       'getResearchRecords',
       'deleteRecord',
+    ]),
+    ...mapActions('subject', [
+      'getSubjects',
     ]),
 
     async openDirectory(directory) {
