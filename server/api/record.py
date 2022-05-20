@@ -8,23 +8,28 @@ import traceback
 def get_record_api(device_manager, record_manager):
     router = Blueprint('record_router', __name__)
 
-    @router.route("/research/<research_id>/record", methods=['GET'])
-    def get_research_records(research_id):
+    @router.route("/research/<research_id>/subject/<subject_id>/record", methods=['GET'])
+    def get_research_records(research_id, subject_id):
         res = [
-            dict(**record, directory=record_service.get_record_dir(research_id, record['_id']))
-            for record in record_service.get_records(research_id)
+            dict(**record, directory=record_service.get_record_dir(record['_id']))
+            for record in record_service.get_records(research_id, subject_id)
         ]
         return jsonify(res)
 
-    @router.route("/research/<research_id>/record/start", methods=['POST'])
-    def start_record(research_id):
+    @router.route("/record/start", methods=['POST'])
+    def start_record():
+        record_data = request.json
+        research_id = record_data['research_id']
+        subject_id = record_data['subject_id']
         try:
             if record_manager.is_recording():
                 return "Recording already started", 500
 
-            record = record_service.create_record(research_id=research_id)
+            record = record_service.create_record(research_id, subject_id)
             if record:
-                record_manager.start_record(research_id, record['_id'])
+                record_dir = record_service.get_record_dir(record['_id'])
+                fs.create_directory(record_dir)
+                record_manager.start_record(record_dir)
 
             return jsonify(record)
         except Exception:
@@ -42,7 +47,7 @@ def get_record_api(device_manager, record_manager):
     def delete_record(record_id):
         record = record_service.get_record(record_id)
         if record:
-            record_dir = record_service.get_record_dir(record['research_id'], record_id)
+            record_dir = record_service.get_record_dir(record_id)
             fs.delete_directory(record_dir)
             record_service.delete_record(record_id)
         return jsonify(True)

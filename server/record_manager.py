@@ -6,7 +6,6 @@ import utils.flie_system as fs
 
 from cv2 import cv2
 from csv import writer
-from config import config
 
 
 class RecordManager(threading.Thread):
@@ -15,23 +14,22 @@ class RecordManager(threading.Thread):
         self.device_manager = device_manager
         self.data_stream = None
         self._recording = False
-        self.base_path = ''
+        self.record_dir = ''
         self.last_event = None
 
-    def start_record(self, research_id, record_id):
+    def start_record(self, record_dir):
         devices = self.device_manager.get_devices()
         self.data_stream = self.device_manager.get_data_stream()
 
         if not self.data_stream:
             raise Exception('Devices data stream is not defined')
 
-        data_dir = config.get('data_dir')
-        self.base_path = f'{data_dir}/{research_id}/{record_id}'
+        self.record_dir = record_dir
 
         for device in devices:
-            fs.create_directory(f'{self.base_path}/{device}')
+            fs.create_directory(f'{self.record_dir}/{device}')
 
-        fs.create_directory(f'{self.base_path}/events')
+        fs.create_directory(f'{self.record_dir}/events')
 
         if not self.is_alive():
             self._recording = True
@@ -42,7 +40,7 @@ class RecordManager(threading.Thread):
 
     def stop_record(self):
         self._recording = False
-        self.base_path = ''
+        self.record_dir = ''
         self.last_event = None
 
     def run(self):
@@ -55,17 +53,17 @@ class RecordManager(threading.Thread):
             device_id, data = self.data_stream.get()
             if device_id == 'camera':
                 name = "frame_" + str(round(time.time() * 1000))
-                cv2.imwrite(f'{self.base_path}/{device_id}/{name}.jpg', data)
+                cv2.imwrite(f'{self.record_dir}/{device_id}/{name}.jpg', data)
             elif device_id == 'openbci_cython' or device_id == 'arduino_uno':
                 data = np.transpose(data)
-                if self.base_path:
-                    with open(f'{self.base_path}/{device_id}/{now_string}.csv', 'a') as csv_file:
+                if self.record_dir:
+                    with open(f'{self.record_dir}/{device_id}/{now_string}.csv', 'a') as csv_file:
                         np.savetxt(csv_file, data, delimiter=',', fmt='%f')
 
             if self.last_event is not None:
                 device_id = 'events'
                 data = [self.last_event[0], self.last_event[1], time.time()]
-                with open(f'{self.base_path}/{device_id}/{now_string}.csv', 'a') as csv_file:
+                with open(f'{self.record_dir}/{device_id}/{now_string}.csv', 'a') as csv_file:
                     writer_object = writer(csv_file)
                     writer_object.writerow(data)
                     csv_file.close()
