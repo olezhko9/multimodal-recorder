@@ -5,9 +5,7 @@ from os.path import isdir, join
 
 from service import device_service
 from api import device_api, research_api, record_api, subject_api, fs_api, notebook_api
-from device_manager import DeviceManager
-from record_manager import RecordManager
-from session_manager import SessionManager
+from managers import DeviceManager, RecordManager, SessionManager
 from utils import MongoJsonEncoder
 from config import config
 

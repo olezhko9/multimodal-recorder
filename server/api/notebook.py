@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from os.path import isfile, join
 from config import config
-from notebook_manager import execute_notebook
+from managers.notebook_manager import execute_notebook
 
 import threading
 import utils.flie_system as fs

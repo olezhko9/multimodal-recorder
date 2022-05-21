@@ -1,9 +1,9 @@
 import os
-
 import nbformat
+import nbparameterise
+
 from nbconvert import HTMLExporter
 from nbconvert.preprocessors import ExecutePreprocessor
-import nbparameterise
 
 
 def execute_notebook(notebook_filename, notebook_filename_out, params_dict,
@@ -46,11 +46,3 @@ def export_notebook_to_html(nb, notebook_filename_out):
     out_fp = notebook_filename_out.replace(".ipynb", ".html")
     with open(out_fp, "w", encoding="utf8") as f:
         f.write(body)
-
-
-if __name__ == '__main__':
-    execute_notebook(
-        './notebooks/original/lab1.ipynb',
-        './notebooks/generated/lab1.ipynb',
-        {'DATA_DIR': './todo/test3.csv'}
-    )
