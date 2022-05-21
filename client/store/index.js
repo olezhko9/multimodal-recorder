@@ -22,7 +22,17 @@ const store = () => new Vuex.Store({
     subject: getNamespacedModule(subject),
     notebook: getNamespacedModule(notebook),
   },
-  strict: true
+  strict: true,
+
+  state: {
+    synchronized: false,
+  },
+
+  mutations: {
+    SET_SYNCHRONIZED(state, isSynchronized) {
+      state.synchronized = isSynchronized
+    }
+  }
 })
 
 export default store

@@ -7,6 +7,7 @@ from service import device_service
 from api import device_api, research_api, record_api, subject_api, fs_api, notebook_api
 from device_manager import DeviceManager
 from record_manager import RecordManager
+from session_manager import SessionManager
 from utils import MongoJsonEncoder
 from config import config
 
@@ -27,6 +28,7 @@ app.json_encoder = MongoJsonEncoder
 
 device_manager = DeviceManager(all_devices=device_service.get_devices())
 record_manager = RecordManager(device_manager)
+session_manager = SessionManager(device_manager, record_manager)
 
 app.register_blueprint(device_api(device_manager))
 app.register_blueprint(research_api())
@@ -60,6 +62,11 @@ def get_frames():
             frames.append(file)
 
     return jsonify(frames)
+
+
+@app.route('/session', methods=['GET'])
+def get_session():
+    return jsonify(session_manager.get_session())
 
 
 @app.errorhandler(Exception)

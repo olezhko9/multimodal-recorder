@@ -64,7 +64,9 @@ export default {
         path: '/',
         redirect: { path: "/researches" }
       })
-    }
+    },
+
+    middleware: ['session']
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
