@@ -2,3 +2,4 @@ venv
 .idea
 
 records
+.ipynb_checkpoints

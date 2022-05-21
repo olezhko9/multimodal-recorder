@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from os.path import isdir, join
 from service import record_service
+from config import config
 
 import utils.flie_system as fs
 import traceback
@@ -19,6 +20,10 @@ def get_record_api(device_manager, record_manager):
 
             fs_json = fs.get_directory_tree(record_dir_name)
             record['tree'] = fs_json
+
+            notebooks_dir = config.get('notebooks_dir', None)
+            record['notebooks_directory'] = join(notebooks_dir, 'record_' + str(record['_id']))
+
 
         return jsonify(records)
 

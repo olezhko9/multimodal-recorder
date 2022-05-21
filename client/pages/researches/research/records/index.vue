@@ -44,6 +44,13 @@
             @click="openDirectory(props.row.directory)">
           </b-button>
         </b-tooltip>
+        <b-tooltip label="Открыть связанные Notebooks">
+          <b-button
+            type="is-primary"
+            icon-left="folder-pound"
+            @click="openDirectory(props.row.notebooks_directory)">
+          </b-button>
+        </b-tooltip>
         <b-button
           type="is-danger"
           icon-left="delete"
@@ -52,7 +59,7 @@
       </b-table-column>
 
       <template #detail="props">
-        <file-explorer :tree="props.row.tree"/>
+        <file-explorer :tree="props.row.tree" @click:notebook="onNotebookRunClick($event, props.row._id)"/>
       </template>
 
       <template #empty>
@@ -79,6 +86,25 @@
         Назад
       </b-button>
     </div>
+
+    <b-modal
+      :active.sync="notebookModalActive"
+      has-modal-card
+      trap-focus>
+      <template #default="props">
+        <div class="modal-card">
+          <section class="modal-card-body" style="border-top-left-radius: 10px; border-top-right-radius: 10px;">
+            <h2 class="title is-5">Notebook запущен</h2>
+            <p>Это может занять некоторые время, чтобы выполнить его. Результат будет доступен в
+              <a @click="openDirectory(notebookDir)">этой папке</a>
+            </p>
+          </section>
+          <footer class="modal-card-foot">
+            <b-button type="is-primary" @click="props.close()">Закрыть</b-button>
+          </footer>
+        </div>
+      </template>
+    </b-modal>
   </div>
 </template>
 
@@ -98,6 +124,8 @@ export default {
       research: null,
       subject: null,
       perPage: 10,
+      notebookModalActive: false,
+      notebookDir: '',
     }
   },
 
@@ -110,6 +138,9 @@ export default {
     }),
     ...mapState('record', {
       records: state => state.researchRecords,
+    }),
+    ...mapState('notebook', {
+      notebooks: state => state.notebooks,
     }),
     ...mapGetters('research', [
       'researchById'
@@ -135,6 +166,8 @@ export default {
 
     this.research = this.researchById(this.researchId)
     this.subject = this.subjectById(this.subjectId)
+
+    !this.notebooks.length && await this.getNotebooks()
   },
 
   methods: {
@@ -148,6 +181,10 @@ export default {
     ...mapActions('subject', [
       'getSubjects',
     ]),
+    ...mapActions('notebook', [
+      'getNotebooks',
+      'runNotebook',
+    ]),
 
     @notifyAfter('Открыто')
     async openDirectory(directory) {
@@ -159,6 +196,16 @@ export default {
     @notifyAfter('Успешно')
     async onRecordDeleteClick(record) {
       return this.deleteRecord({ recordId: record._id })
+    },
+
+    async onNotebookRunClick(notebookParams, recordId) {
+      try {
+        if (notebookParams.notebook) {
+          this.notebookDir = await this.runNotebook({ recordId, ...notebookParams })
+          this.notebookModalActive = true
+        }
+      } finally {
+      }
     }
   }
 }

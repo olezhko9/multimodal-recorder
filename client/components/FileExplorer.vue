@@ -13,21 +13,35 @@
       class="columns is-multiline is-paddingless">
       <div v-for="file in fsTree.tree" class="column is-4">
         <div
-          class="box file"
+          class="box fs-file"
           @dblclick="obDoubleClick(file)">
-          <div class="file_header">
+          <div class="fs-file__header" :title="file.name">
             <b-icon v-if="file.type === 'directory'" icon="folder" class="mr-2"></b-icon>
-            <span class="folder__name">{{ file.name }}</span>
+            <span class="fs-file__name">{{ file.name }}</span>
           </div>
-          <div class="file_control">
+          <div class="fs-file__control">
             <b-dropdown position="is-bottom-left">
               <template #trigger="{ active }">
                 <b-icon icon="dots-vertical"></b-icon>
               </template>
-
-              <b-dropdown-item>Открыть</b-dropdown-item>
-              <b-dropdown-item>Another action</b-dropdown-item>
-              <b-dropdown-item>Something else</b-dropdown-item>
+              <b-dropdown-item
+                class="context-menu__item"
+                @click="openDirectory(file.path)">
+                <b-icon icon="folder"></b-icon>
+                Открыть в проводнике
+              </b-dropdown-item>
+              <b-dropdown-item
+                class="context-menu__item"
+                @click="openNotebooksModal(file.path)">
+                <b-icon icon="file-code"></b-icon>
+                Запустить Notebook
+              </b-dropdown-item>
+              <b-dropdown-item
+                class="context-menu__item"
+                @click="removeDirectory(file.path)">
+                <b-icon icon="delete" type="is-danger"></b-icon>
+                Удалить
+              </b-dropdown-item>
             </b-dropdown>
           </div>
         </div>
@@ -49,6 +63,8 @@
 
 <script>
 import { notifyAfter } from "@/modules/notification-decorators"
+import NotebooksModal from "@/components/NotebooksModal"
+import { mapState } from "vuex"
 
 export default {
   name: "FileExplorer",
@@ -64,6 +80,12 @@ export default {
       fsTree: this.tree || null,
       fsHistory: []
     }
+  },
+
+  computed: {
+    ...mapState('notebook', {
+      notebooks: state => state.notebooks,
+    }),
   },
 
   mounted() {},
@@ -88,33 +110,36 @@ export default {
         directory
       })
     },
+
+    @notifyAfter('Удалено')
+    async removeDirectory(directory) {
+      return this.$axios.$post('/fs/directory/remove', {
+        directory
+      })
+    },
+
+    openNotebooksModal(dataPath) {
+      this.$buefy.modal.open({
+        component: NotebooksModal,
+        parent: this,
+        hasModalCard: true,
+        props: {
+          notebooks: this.notebooks,
+          onSave: (notebook) => {
+            this.$emit('click:notebook', {
+              notebook,
+              dataPath,
+            })
+          }
+        }
+      })
+    }
   }
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .fs-explorer {
   margin: -10px;
-}
-
-.file {
-  display: flex;
-  flex-direction: row;
-  justify-tree: space-between;
-  user-select: none;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-}
-
-.file_header {
-  display: flex;
-  align-items: center;
-  width: 90%;
-}
-
-.folder__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

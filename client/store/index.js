@@ -5,6 +5,7 @@ import record from "./modules/record"
 import research from './modules/research'
 import device from './modules/device'
 import subject from './modules/subject'
+import notebook from './modules/notebook'
 
 Vue.use(Vuex)
 
@@ -19,6 +20,7 @@ const store = () => new Vuex.Store({
     research: getNamespacedModule(research),
     device: getNamespacedModule(device),
     subject: getNamespacedModule(subject),
+    notebook: getNamespacedModule(notebook),
   },
   strict: true
 })

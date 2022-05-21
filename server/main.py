@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from mongoengine import connect
-from os.path import isfile, isdir, join
+from os.path import isdir, join
 
 from service import device_service
-from api import device_api, research_api, record_api, subject_api
+from api import device_api, research_api, record_api, subject_api, fs_api, notebook_api
 from device_manager import DeviceManager
 from record_manager import RecordManager
 from utils import MongoJsonEncoder
@@ -31,13 +31,8 @@ app.register_blueprint(device_api(device_manager))
 app.register_blueprint(research_api())
 app.register_blueprint(record_api(device_manager, record_manager))
 app.register_blueprint(subject_api())
-
-
-@app.route('/fs/directory/open', methods=['POST'])
-def fs_open_dir():
-    params = request.json
-    res = fs.open_directory(params.get('directory', None))
-    return jsonify(res)
+app.register_blueprint(fs_api())
+app.register_blueprint(notebook_api())
 
 
 @app.route('/event', methods=['POST'])
@@ -46,13 +41,6 @@ def put_event():
     if event.get('name'):
         record_manager.set_last_event(event['name'], event.get('data'))
     return jsonify(True)
-
-
-@app.route('/notebook', methods=["GET"])
-def get_notebooks():
-    notebooks_dir = './notebooks/original'
-    notebooks = [f for f in fs.list_directory(notebooks_dir) if f.endswith('.ipynb') and isfile(join(notebooks_dir, f))]
-    return jsonify(notebooks)
 
 
 @app.route("/frame")

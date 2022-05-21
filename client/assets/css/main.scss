@@ -36,3 +36,45 @@ body {
   display: inline-flex;
   gap: 5px;
 }
+
+.fs-file {
+  display: flex;
+  flex-direction: row;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  background-color: $primary-light;
+
+  .fs-file__header {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .fs-file__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fs-file__control {
+    .icon {
+      cursor: pointer;
+    }
+  }
+}
+
+.context-menu__item {
+  display: flex;
+  align-items: center;
+
+  .icon {
+    margin-right: 0.5rem;
+  }
+}
+
+.b-checkbox.checkbox input[type=checkbox] + .check {
+  background: white;
+}

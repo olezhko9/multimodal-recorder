@@ -26,11 +26,18 @@ def open_directory(path):
 
 
 def delete_directory(path):
+    if not path:
+        return False
+
     directory = pathlib.Path(path)
     if not directory.exists():
         return False
 
-    shutil.rmtree(path)
+    if directory.is_dir():
+        shutil.rmtree(path)
+    elif directory.is_file():
+        directory.unlink()
+
     return True
 
 
