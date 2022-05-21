@@ -52,12 +52,14 @@
               @click="openDirectory(props.row.directory)">
             </b-button>
           </b-tooltip>
-          <b-button
-            type="is-primary"
-            icon-left="open-in-new"
-            tag="nuxt-link"
-            :to="{ path: '/researches/research/records', query: { researchId, subjectId: props.row._id } }">
-          </b-button>
+          <b-tooltip label="Открыть записи">
+            <b-button
+              type="is-primary"
+              icon-left="database"
+              tag="nuxt-link"
+              :to="{ path: '/researches/research/records', query: { researchId, subjectId: props.row._id } }">
+            </b-button>
+          </b-tooltip>
           <b-button
             type="is-danger"
             icon-left="delete"

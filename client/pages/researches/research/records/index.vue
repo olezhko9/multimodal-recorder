@@ -25,7 +25,9 @@
       :total="records.length"
       :paginated="records.length > perPage"
       :per-page="perPage"
-      :pagination-simple="true">
+      detailed
+      detail-key="_id"
+      how-detail-icon>
       <b-table-column field="id" label="ID" v-slot="props">
         {{ props.row._id }}
       </b-table-column>
@@ -48,6 +50,10 @@
           @click="onRecordDeleteClick(props.row)">
         </b-button>
       </b-table-column>
+
+      <template #detail="props">
+        <file-explorer :tree="props.row.tree"/>
+      </template>
 
       <template #empty>
         <section class="section">
@@ -79,9 +85,13 @@
 <script>
 import { mapActions, mapState, mapGetters } from "vuex"
 import { notifyAfter } from "@/modules/notification-decorators"
+import FileExplorer from "@/components/FileExplorer"
 
 export default {
   name: "records",
+  components: {
+    FileExplorer,
+  },
 
   data() {
     return {

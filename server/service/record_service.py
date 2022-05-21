@@ -30,4 +30,5 @@ def delete_record(record_id):
 def get_record_dir(record_id):
     data_dir = config.get('data_dir')
     record = get_record(record_id)
-    return f"{data_dir}/research_{record['research_id']}/subject_{record['subject_id']}/records/record_{record_id}"
+    if record:
+        return f"{data_dir}/research_{record['research_id']}/subject_{record['subject_id']}/records/record_{record_id}"

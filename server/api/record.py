@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from os.path import isdir, join
 from service import record_service
 
 import utils.flie_system as fs
@@ -10,11 +11,16 @@ def get_record_api(device_manager, record_manager):
 
     @router.route("/research/<research_id>/subject/<subject_id>/record", methods=['GET'])
     def get_research_records(research_id, subject_id):
-        res = [
-            dict(**record, directory=record_service.get_record_dir(record['_id']))
-            for record in record_service.get_records(research_id, subject_id)
-        ]
-        return jsonify(res)
+        records = record_service.get_records(research_id, subject_id)
+        _records = []
+        for record in records:
+            record_dir_name = record_service.get_record_dir(record['_id'])
+            record['directory'] = record_dir_name
+
+            fs_json = fs.get_directory_tree(record_dir_name)
+            record['tree'] = fs_json
+
+        return jsonify(records)
 
     @router.route("/record/start", methods=['POST'])
     def start_record():
@@ -51,6 +57,15 @@ def get_record_api(device_manager, record_manager):
             fs.delete_directory(record_dir)
             record_service.delete_record(record_id)
         return jsonify(True)
+
+    @router.route('/record/<record_id>', methods=['GET'])
+    def get_record(record_id):
+        record = record_service.get_record(record_id)
+        record_dir_name = record_service.get_record_dir(record_id)
+        record_dir = fs.list_directory(record_dir_name)
+        devices = [f for f in record_dir if isdir(join(record_dir_name, f))]
+        record = dict(**record, devices=devices)
+        return jsonify(record)
 
     # @router.route("/record/pause", methods=['POST'])
     # def pause_record():

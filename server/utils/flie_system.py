@@ -40,3 +40,21 @@ def create_directory(path):
 
 def list_directory(path):
     return os.listdir(path)
+
+
+def get_directory_tree(path, exclude=[]):
+    for substr in exclude:
+        if substr in path:
+            return
+
+    d = {
+        'name': os.path.basename(path),
+        'path': path
+    }
+    if os.path.isdir(path):
+        d['type'] = "directory"
+        d['tree'] = [get_directory_tree(os.path.join(path, x)) for x in os.listdir(path)]
+        d['tree'] = [x for x in d['tree'] if x is not None]
+    else:
+        d['type'] = "file"
+    return d
