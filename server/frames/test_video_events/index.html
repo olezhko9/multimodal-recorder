@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+      * {
+          font-size: 24px;
+      }
+
+      .container, .slide {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+      }
+
+      video {
+          width: 80%;
+          margin-bottom: 1rem;
+      }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"
+          integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <div id="video1" class="slide">
+    <p><span class="subject-name"></span>постарайтесь расслабиться</p>
+    <video controls autoplay muted>
+      <source src="/test_video_events/video/waterfall.mp4" type="video/mp4">
+    </video>
+    <button>Следующее видео</button>
+  </div>
+  <div id="video2" class="slide">
+    <p><span class="subject-name"></span>постарайтесь сосредоточиться на видео</p>
+    <video controls autoplay muted>
+      <source src="/test_video_events/video/speedtext.mp4" type="video/mp4">
+    </video>
+  </div>
+  <p class="video-progress"></p>
+</div>
+<script>
+  let currentVideo = 'video1'
+
+  $('#video2').hide()
+
+  $('button').click(function () {
+    $('#video1 > video')[0].pause()
+    $('#video1').hide()
+    $('#video2').show()
+    currentVideo = 'video2'
+  })
+
+  let researchData = null
+  window.addEventListener('message', function (e) {
+    researchData = JSON.parse(e.data);
+    $('.subject-name').text(researchData.subject.info['Имя'] + ', ')
+  });
+
+  const videos = document.querySelectorAll('video')
+  for (let video of videos) {
+    video.addEventListener('timeupdate', function () {
+      let time = video.currentTime
+      $('.video-progress').html(video.currentTime)
+      axios.post('http://localhost:5000/event', {
+        name: 'timeupdate',
+        data: {
+          video: currentVideo,
+          video_time: time,
+        }
+      }).then(response => {
+        console.log(response.data)
+      })
+    })
+  }
+</script>
+</body>
+</html>

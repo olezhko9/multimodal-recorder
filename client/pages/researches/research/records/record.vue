@@ -180,7 +180,8 @@ export default {
       'isDeviceStarted'
     ]),
     ...mapGetters('subject', [
-      'subjectName'
+      'subjectName',
+      'subjectById',
     ]),
 
     researchId() {
@@ -242,10 +243,14 @@ export default {
 
     onFrameLoaded() {
       const frame = this.$refs.frame
-      const msg = JSON.stringify({
-        research: this.research
+      const data = JSON.stringify({
+        researchId: this.researchId,
+        research: this.research,
+        subjectId: this.subjectId,
+        subject: this.subjectById(this.subjectId),
+        startedDevices: this.startedDevices,
       })
-      frame.contentWindow.postMessage(msg, '*')
+      frame.contentWindow.postMessage(data, '*')
       this.frameLoaded = true
       console.log('frame loaded')
     },
