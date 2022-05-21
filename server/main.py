@@ -10,6 +10,7 @@ from record_manager import RecordManager
 from utils import MongoJsonEncoder
 from config import config
 
+import atexit
 import utils.flie_system as fs
 
 app = Flask(__name__, static_folder='frames', static_url_path='')
@@ -65,6 +66,14 @@ def get_frames():
 def handle_exception(err):
     return str(err), 500
 
+
+# отключаем все устройства при экстренном завершении работы
+def on_termination():
+    record_manager.stop_record()
+    device_manager.stop_and_remove_devices()
+
+
+atexit.register(on_termination)
 
 if __name__ == "__main__":
     app.run(debug=True)
