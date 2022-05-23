@@ -84,6 +84,7 @@ export default {
         subjectForm: [
           { name: 'Имя', type: 'string' },
           { name: 'Возраст', type: 'number' },
+          { name: 'Пол', type: 'select', options: ["Мужчина", "Женщина"] },
         ],
         frame: null,
 

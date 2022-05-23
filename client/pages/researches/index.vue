@@ -26,7 +26,7 @@
               :key="device.device_id"
               type="is-primary"
               class="mr-2">
-              {{ device.device_id }}
+              {{ deviceById(device.device_id) ? deviceById(device.device_id).name : device.device_id }}
             </b-tag>
           </p>
         </div>
@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import { notifyAfter } from "@/modules/notification-decorators"
 
 export default {
@@ -60,16 +60,23 @@ export default {
     ...mapState('research', {
       researches: state => state.researches,
     }),
+    ...mapGetters('device', [
+      'deviceById',
+    ]),
   },
 
   async mounted() {
     await this.getResearches()
+    await this.getDevices()
   },
 
   methods: {
     ...mapActions('research', [
       'getResearches',
       'deleteResearch'
+    ]),
+    ...mapActions('device', [
+      'getDevices'
     ]),
 
     @notifyAfter('Удалено')

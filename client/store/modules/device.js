@@ -6,6 +6,10 @@ const state = () => ({
 const getters = {
   isDeviceStarted: state => deviceId => {
     return state.startedDevices.includes(deviceId)
+  },
+
+  deviceById: state => deviceId => {
+    return state.devices.find(d => d.device_id === deviceId)
   }
 }
 

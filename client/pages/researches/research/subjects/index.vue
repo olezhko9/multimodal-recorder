@@ -35,7 +35,13 @@
         :key="field.name"
         :field="'info.' + field.name"
         :label="field.name"
+        width="150"
+        centered
         v-slot="props">
+        <template v-if="field.name === 'Пол'">
+          <b-icon v-if="props.row.info[field.name] === 'Мужчина'" icon="gender-male" size="is-small"></b-icon>
+          <b-icon v-else-if="props.row.info[field.name] === 'Женщина'" icon="gender-female" size="is-small"></b-icon>
+        </template>
         {{ props.row.info[field.name] }}
       </b-table-column>
 
@@ -67,6 +73,27 @@
           </b-button>
         </div>
       </b-table-column>
+
+      <template #footer>
+        <th class="is-hidden-mobile">
+          <div class="th-wrap is-numeric"></div>
+        </th>
+        <th class="is-hidden-mobile">
+          <div class="th-wrap"></div>
+        </th>
+        <th class="is-hidden-mobile">
+          <div class="th-wrap is-centered">Средний возраст: {{ meanAge }}</div>
+        </th>
+        <th class="is-hidden-mobile">
+          <div class="th-wrap is-centered">{{ genderArray[0] }} муж., {{ genderArray[1] }} жен.</div>
+        </th>
+        <th class="is-hidden-mobile">
+          <div class="th-wrap"></div>
+        </th>
+        <th class="is-hidden-mobile">
+          <div class="th-wrap"></div>
+        </th>
+      </template>
 
       <template #empty>
         <section class="section">
@@ -102,6 +129,12 @@
                 v-model.number="modalSubject[field.name]"
                 expanded>
               </b-numberinput>
+              <b-select
+                v-else-if="field.type === 'select'"
+                v-model="modalSubject[field.name]"
+                expanded>
+                <option v-for="option in (field.options || [])" :key="option" :value="option">{{ option }}</option>
+              </b-select>
               <b-input
                 v-else
                 v-model="modalSubject[field.name]"
@@ -164,6 +197,31 @@ export default {
 
     researchId() {
       return this.$route.query.researchId
+    },
+
+    meanAge() {
+      let sum = 0, count = 0
+      for (let subject of this.subjects) {
+        if (subject && subject.info && subject.info['Возраст']) {
+          sum += subject.info['Возраст']
+          count++
+        }
+      }
+      if (count) return (sum / count).toFixed(2)
+
+      return 0
+    },
+
+    genderArray() {
+      const gendersCount = [0, 0] // 0 - муж, 1 - жен
+      for (let subject of this.subjects) {
+        if (subject && subject.info && subject.info['Пол']) {
+          if (subject.info['Пол'] === 'Мужчина') gendersCount[0]++
+          else if (subject.info['Пол'] === 'Женщина') gendersCount[1]++
+        }
+      }
+
+      return gendersCount
     }
   },
 
