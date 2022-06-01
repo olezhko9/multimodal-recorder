@@ -19,7 +19,8 @@ const mutations = {
   },
 
   ADD_STARTED_DEVICE(state, deviceId) {
-    state.startedDevices.push(deviceId)
+    if (!state.startedDevices.includes(deviceId))
+      state.startedDevices.push(deviceId)
   },
 
   REMOVE_STARTED_DEVICE(state, deviceId) {
