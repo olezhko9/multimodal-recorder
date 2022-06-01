@@ -62,7 +62,7 @@ function notifyAfter(successText, duration = 3000, loading = true) {
             duration: notificationConfig.duration,
             message: message,
             type: type,
-            position: 'is-bottom-right',
+            position: 'is-top-right',
             queue: false
           })
         }

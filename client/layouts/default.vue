@@ -40,15 +40,20 @@
         <b-icon v-else-if="recordState === 'PAUSED'" icon="pause" type="is-white" size="is-small"></b-icon>
         <span>Запись {{ recordStateTexts }}</span>
       </div>
+      <active-devices class="devices-panel"/>
     </div>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
+import ActiveDevices from "@/components/ActiveDevices"
 
 export default {
   name: 'DefaultLayout',
+  components: {
+    ActiveDevices,
+  },
 
   data() {
     return {
@@ -85,7 +90,7 @@ export default {
 }
 
 .container {
-  padding: 2.5rem 2rem 4rem;
+  padding: 2.5rem 2rem 5rem;
 }
 
 .logo {
@@ -102,6 +107,7 @@ export default {
   background-color: $primary;
   color: white;
   display: flex;
+  justify-content: space-between;
 }
 
 .ring-container {
@@ -141,5 +147,11 @@ export default {
     -webkit-transform: scale(1.2, 1.2);
     opacity: 0.0;
   }
+}
+
+.devices-panel {
+  position: absolute;
+  bottom: 5px;
+  right: 1rem;
 }
 </style>

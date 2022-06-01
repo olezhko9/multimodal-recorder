@@ -36,12 +36,6 @@
                       icon-left="cog"
                       @click="modalDevice = device">
                     </b-button>
-                    <b-button
-                      v-if="isDeviceStarted(device.device_id)"
-                      type="is-primary"
-                      icon-left="eye"
-                      @click="openDeviceWindow(device)">
-                    </b-button>
                     <b-tooltip
                       v-if="!isDeviceStarted(device.device_id)"
                       label="Запустить устройство">
@@ -283,10 +277,6 @@ export default {
         return device
       })
       this.modalDevice = null
-    },
-
-    openDeviceWindow(device) {
-      window.open('/devices/monitor?deviceId=' + device.device_id, '_blank')
     }
   }
 }
