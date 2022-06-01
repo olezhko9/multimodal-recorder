@@ -286,7 +286,7 @@ export default {
     },
 
     openDeviceWindow(device) {
-      window.open('/devices' + (device.device_id === 'camera' ? '/camera' : '/eeg'), '_blank')
+      window.open('/devices/monitor?deviceId=' + device.device_id, '_blank')
     }
   }
 }
