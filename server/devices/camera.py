@@ -20,17 +20,17 @@ class Camera(Device):
 
     def start(self):
         logging.info("Camera start")
+        super(Camera, self).start()
+
+    def run(self):
         if self.cap is None or not self.cap.isOpened():
             self.cap = cv2.VideoCapture(0)
             self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
 
-        super(Camera, self).start()
-
-    def run(self):
-        while True:
-            if self.cap is None or not self.started:
+        while self.is_started():
+            if self.cap is None or not self.is_stopped:
                 continue
 
             success, frame = self.cap.read()
@@ -39,24 +39,15 @@ class Camera(Device):
             else:
                 self.last_frame = frame
                 self.frame_number += 1
-
-    def pause(self):
-        pass
-
-    def stop(self):
-        logging.info("Camera stop")
-        super(Camera, self).stop()
+                self.buffer.put((self.last_frame, self.should_save_data(frame)))
 
         if self.cap is not None:
             self.cap.release()
             self.cap = None
 
-    def get_data(self):
-        super(Camera, self).get_data()
-        frame = self.last_frame
-        self.last_frame = None
-
-        return frame, self.should_save_data(frame)
+    def stop(self):
+        logging.info("Camera stop")
+        super(Camera, self).stop()
 
     def format_to_sse(self, data):
         ret, buffer = cv2.imencode('.jpg', data)

@@ -1,29 +1,31 @@
 from abc import ABC, abstractmethod
-import threading
+import multiprocessing as mp
 
 
-class Device(ABC, threading.Thread):
+class Device(ABC, mp.Process):
     def __init__(self, options):
-        threading.Thread.__init__(self)
+        super(Device, self).__init__()
         self.options = options
-        self.started = False
-        self._stop_event = threading.Event()
+        self.is_stopped = mp.Event()
+        self.buffer = mp.Queue()
 
     @abstractmethod
     def start(self):
-        self.started = True
-        threading.Thread.start(self)
-
-    @abstractmethod
-    def pause(self):
-        pass
+        self.daemon = True
+        super(Device, self).start()
 
     @abstractmethod
     def stop(self):
-        self._stop_event.set()
-        self.started = False
+        self.is_stopped.set()
+        self.buffer.cancel_join_thread()
+        super(Device, self).terminate()
+        super(Device, self).join()
 
-    @abstractmethod
+    def is_started(self):
+        return not self.is_stopped.is_set()
+
     def get_data(self):
-        if not self.started:
-            raise Exception('Device is not started')
+        if self.buffer.empty():
+            return None, False
+
+        return self.buffer.get()

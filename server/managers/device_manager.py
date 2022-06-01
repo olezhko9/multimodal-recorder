@@ -37,7 +37,7 @@ class DeviceManager(threading.Thread):
             self.stop_stream(device_id)
             self._devices[device_id].stop()
         except Exception:
-            pass
+            traceback.print_exc()
 
     def remove_device(self, device_id):
         self._devices.pop(device_id, None)

@@ -1,11 +1,9 @@
-from time import sleep
+import numpy as np
+import time
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels, BoardIds, BrainFlowError
 from utils.logger import logging
-
 from .device import Device
-
-import numpy as np
 
 
 class OpenBCIBoard(Device):
@@ -15,49 +13,52 @@ class OpenBCIBoard(Device):
         super().__init__(options)
         BoardShim.enable_dev_board_logger()
 
-        port = options.get('port') or OpenBCIBoard.default_port
-        params = BrainFlowInputParams()
-        params.serial_port = port
+        self.port = options.get('port') or OpenBCIBoard.default_port
+        self.board_type = options.get('board_type')
 
-        board_type = options.get('board_type')
-        if board_type == 'Cyton':
+        if self.board_type == 'Cyton':
             self.board_id = BoardIds.CYTON_DAISY_BOARD.value
-        elif board_type == 'Synthetic':  # use synthetic board for demo
+        elif self.board_type == 'Synthetic':  # use synthetic board for demo
             self.board_id = BoardIds.SYNTHETIC_BOARD.value
 
-        self.board = BoardShim(self.board_id, params)
-
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
-        self.timestamp_channel = self.board.get_timestamp_channel(self.board_id)
-        self.eeg_channels = self.board.get_eeg_channels(self.board_id)
-        print('board eeg channels:', self.eeg_channels)
-        print('board timestamp channel:', self.timestamp_channel)
-        self.channels = np.append(self.eeg_channels, self.timestamp_channel)
-
-        self.buffer = None
-        self.max_buffer_size = self.sampling_rate // 4
 
     def start(self):
+        self.input_params = BrainFlowInputParams()
+        self.input_params.serial_port = self.port
+
+        super(OpenBCIBoard, self).start()
+
+    def run(self):
+        self.board = BoardShim(self.board_id, self.input_params)
+
+        self.timestamp_channel = self.board.get_timestamp_channel(self.board_id)
+        self.eeg_channels = self.board.get_eeg_channels(self.board_id)
+        print('board type', self.board_type)
+        print('board eeg channels:', self.eeg_channels)
+        print('board timestamp channel:', self.timestamp_channel)
+        print('board sampling_rate', self.sampling_rate)
+        self.channels = np.append(self.eeg_channels, self.timestamp_channel)
+
         logging.info("Board start")
         if not self.board.is_prepared():
             self.board.prepare_session()
             self.board.start_stream()
             BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
 
-        super(OpenBCIBoard, self).start()
+        while self.is_started():
+            try:
+                # берем все данные из платы и удаляем их из буфера платы
+                board_data = self.board.get_board_data()
 
-    def run(self):
-        pass
-        # while self.pause_flag.is_set():
-        #     data = self.board.get_current_board_data(1)
-        #     timestamp = int(data[self.timestamp_channel][0])
+                if len(board_data[0]):
+                    board_data = board_data[self.channels]
+                    self.buffer.put((board_data, self.should_save_data(board_data)))
 
-    def pause(self):
-        logging.info("Board pause")
+                time.sleep(0.1)
+            except Exception as e:
+                print(e)
 
-    def stop(self):
-        logging.info("Board stop")
-        super(OpenBCIBoard, self).stop()
         try:
             self.board.stop_stream()
         except BrainFlowError:
@@ -65,35 +66,12 @@ class OpenBCIBoard(Device):
 
         self.board.release_session()
 
-    def get_data(self):
-        # берем все данные из платы и удаляем их из буфера платы
-        board_data = self.board.get_board_data()
-
-        if len(board_data[0]):
-            board_data = board_data[self.channels]
-
-            if self.buffer is None:
-                self.buffer = board_data
-            else:
-                self.buffer = np.concatenate((self.buffer, board_data), axis=1)
-                if len(self.buffer[0]) > self.max_buffer_size:
-                    buffer = self.buffer
-                    self.buffer = None
-
-                    return buffer, self.should_save_data(buffer)
-
-        return None, False
+    def stop(self):
+        logging.info("Board stop")
+        super(OpenBCIBoard, self).stop()
 
     def format_to_sse(self, data):
         return data.tolist()
 
     def should_save_data(self, data):
         return True
-
-
-if __name__ == '__main__':
-    board = OpenBCIBoard({})
-    board.start()
-    sleep(2)
-    data = board.get_data()
-    print(data)
