@@ -82,7 +82,7 @@
           <div class="th-wrap"></div>
         </th>
         <th class="is-hidden-mobile">
-          <div class="th-wrap is-centered">Средний возраст: {{ meanAge }}</div>
+          <div class="th-wrap is-centered">Сред. возраст: {{ meanAge }}</div>
         </th>
         <th class="is-hidden-mobile">
           <div class="th-wrap is-centered">{{ genderArray[0] }} муж., {{ genderArray[1] }} жен.</div>
@@ -135,6 +135,10 @@
                 expanded>
                 <option v-for="option in (field.options || [])" :key="option" :value="option">{{ option }}</option>
               </b-select>
+              <b-checkbox
+                v-else-if="field.type === 'bool'"
+                v-model="modalSubject[field.name]">
+              </b-checkbox>
               <b-input
                 v-else
                 v-model="modalSubject[field.name]"
