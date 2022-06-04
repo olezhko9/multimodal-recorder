@@ -27,6 +27,10 @@ def delete_record(record_id):
         record.delete()
 
 
+def set_record_data(record_id, device_modality_dict):
+    ResearchRecord.objects(_id=record_id).update_one(set__device_modality_dict=device_modality_dict)
+
+
 def get_record_dir(record_id):
     data_dir = config.get('data_dir')
     record = get_record(record_id)

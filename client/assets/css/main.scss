@@ -49,8 +49,8 @@ body {
   .fs-file__header {
     display: flex;
     align-items: center;
-    overflow: hidden;
     flex: 1;
+    max-width: calc(100% - 24px);
   }
 
   .fs-file__name {

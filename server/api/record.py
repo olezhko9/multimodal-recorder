@@ -40,7 +40,8 @@ def get_record_api(device_manager, record_manager):
             if record:
                 record_dir = record_service.get_record_dir(record['_id'])
                 fs.create_directory(record_dir)
-                record_manager.start_record(record_dir)
+                device_modality_dict = record_manager.start_record(record['_id'], record_dir)
+                record_service.set_record_data(record['_id'], device_modality_dict)
 
             return jsonify(record)
         except Exception:

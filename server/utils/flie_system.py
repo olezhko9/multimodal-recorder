@@ -9,6 +9,10 @@ def open_directory(path):
     if path is None:
         return False
 
+    path = pathlib.Path(path)
+    if path.is_file():
+        path = path.parents[0]
+
     pipe = None
     if platform.system() == "Windows":
         os.startfile(path)

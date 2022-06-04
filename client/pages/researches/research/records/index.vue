@@ -25,6 +25,7 @@
       :total="records.length"
       :paginated="records.length > perPage"
       :per-page="perPage"
+      :loading="isLoading"
       detailed
       detail-key="_id"
       how-detail-icon>
@@ -59,7 +60,10 @@
       </b-table-column>
 
       <template #detail="props">
-        <file-explorer :tree="props.row.tree" @click:notebook="onNotebookRunClick($event, props.row._id)"/>
+        <file-explorer
+          :tree="props.row.tree"
+          :modalities="props.row.device_modality_dict"
+          @click:notebook="onNotebookRunClick($event, props.row._id)"/>
       </template>
 
       <template #empty>
@@ -126,6 +130,7 @@ export default {
       perPage: 10,
       notebookModalActive: false,
       notebookDir: '',
+      isLoading: false,
     }
   },
 
@@ -160,14 +165,19 @@ export default {
   },
 
   async mounted() {
-    !this.researches.length && await this.getResearches()
-    !this.subjects.length && await this.getSubjects({ researchId: this.researchId })
-    await this.getResearchRecords({ researchId: this.researchId, subjectId: this.subjectId })
+    try {
+      this.isLoading = true
+      !this.researches.length && await this.getResearches()
+      !this.subjects.length && await this.getSubjects({ researchId: this.researchId })
+      await this.getResearchRecords({ researchId: this.researchId, subjectId: this.subjectId })
 
-    this.research = this.researchById(this.researchId)
-    this.subject = this.subjectById(this.subjectId)
+      this.research = this.researchById(this.researchId)
+      this.subject = this.subjectById(this.subjectId)
 
-    !this.notebooks.length && await this.getNotebooks()
+      !this.notebooks.length && await this.getNotebooks()
+    } finally {
+      this.isLoading = false
+    }
   },
 
   methods: {

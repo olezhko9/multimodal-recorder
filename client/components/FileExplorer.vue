@@ -17,7 +17,10 @@
           @dblclick="obDoubleClick(file)">
           <div class="fs-file__header" :title="file.name">
             <b-icon v-if="file.type === 'directory'" icon="folder" class="mr-2"></b-icon>
-            <span class="fs-file__name">{{ file.name }}</span>
+            <b-tooltip v-if="modalities[file.name]" :label="modalities[file.name]" type="is-primary" position="is-bottom">
+              <span class="fs-file__name">{{ file.name }}</span>
+            </b-tooltip>
+            <span v-else class="fs-file__name">{{ file.name }}</span>
           </div>
           <div class="fs-file__control">
             <b-dropdown position="is-bottom-left">
@@ -72,6 +75,11 @@ export default {
   props: {
     tree: {
       type: Object
+    },
+    modalities: {
+      type: Object,
+      default: () => {
+      }
     }
   },
 
@@ -88,7 +96,8 @@ export default {
     }),
   },
 
-  mounted() {},
+  mounted() {
+  },
 
   methods: {
     obDoubleClick(file) {

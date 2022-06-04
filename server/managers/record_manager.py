@@ -5,7 +5,6 @@ import numpy as np
 import utils.flie_system as fs
 
 from cv2 import cv2
-from csv import writer
 
 
 class RecordManager(threading.Thread):
@@ -16,8 +15,9 @@ class RecordManager(threading.Thread):
         self._recording = False
         self.record_dir = ''
         self.last_event = None
+        self.files = {}
 
-    def start_record(self, record_dir):
+    def start_record(self, record_id, record_dir):
         devices = self.device_manager.get_devices()
         self.data_stream = self.device_manager.get_data_stream()
 
@@ -25,48 +25,62 @@ class RecordManager(threading.Thread):
             raise Exception('Devices data stream is not defined')
 
         self.record_dir = record_dir
+        now_string = str(round(time.time() * 1000))
+        meta = {
+            'record_id': record_id,
+            'device': {},
+            'subject': {}
+        }
 
-        for device in devices:
-            fs.create_directory(f'{self.record_dir}/{device}')
+        device_modality_dict = {}
+        devices_id = [device_id for device_id in devices]
+        devices_id.append('events')
+        for device_id in devices_id:
+            fs.create_directory(f'{self.record_dir}/{device_id}')
+            modality = 'events'
+            if device_id != 'events':
+                modality = devices[device_id].modality
+            device_modality_dict[device_id] = modality
 
-        fs.create_directory(f'{self.record_dir}/events')
+            meta['modality'] = modality
+            meta['device']['device_id'] = device_id
+
+            if not modality.startswith('visual') and not modality.startswith('audio'):
+                self.files[device_id] = open(f'{self.record_dir}/{device_id}/{device_id}_{now_string}.txt', 'a')
+                self.files[device_id].write(json.dumps(meta, default=str) + '\n')
 
         self._recording = True
         if not self.is_alive():
             threading.Thread.start(self)
-            return True
 
-        return False
+        return device_modality_dict
 
     def stop_record(self):
         self._recording = False
         self.record_dir = ''
         self.last_event = None
+        self.files = {}
 
     def run(self):
-        now_string = str(round(time.time() * 1000))
-
         while True:
             if not self._recording:
                 continue
 
             device_id, data = self.data_stream.get()
-            if device_id == 'camera':
+            modality = self.device_manager.get_device(device_id).modality
+            if modality == 'visual/image':
                 name = "frame_" + str(round(time.time() * 1000))
                 cv2.imwrite(f'{self.record_dir}/{device_id}/{name}.jpg', data)
-            elif device_id == 'openbci_cython' or device_id == 'arduino_uno':
+            elif modality.startswith('serial/'):
                 data = np.transpose(data)
                 if self.record_dir:
-                    with open(f'{self.record_dir}/{device_id}/{now_string}.csv', 'a') as csv_file:
-                        np.savetxt(csv_file, data, delimiter=',', fmt='%f')
+                    np.savetxt(self.files[device_id], data, delimiter=',', fmt='%f')
 
+            device_id = 'events'
             if self.last_event is not None:
-                device_id = 'events'
-                data = [self.last_event[0], self.last_event[1], time.time()]
-                with open(f'{self.record_dir}/{device_id}/{now_string}.csv', 'a') as csv_file:
-                    writer_object = writer(csv_file)
-                    writer_object.writerow(data)
-                    csv_file.close()
+                data = [self.last_event[0], json.dumps(self.last_event[1]), time.time()]
+                if self.record_dir:
+                    self.files[device_id].write(','.join(str(val) for val in data) + '\n')
 
                 self.last_event = None
 
