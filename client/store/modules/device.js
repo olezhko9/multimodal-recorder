@@ -29,6 +29,10 @@ const mutations = {
 
   REMOVE_STARTED_DEVICE(state, deviceId) {
     state.startedDevices = state.startedDevices.filter(d => d !== deviceId)
+  },
+
+  DELETE_DEVICE(state, deviceId) {
+    state.devices = state.devices.filter(device => device.device_id !== deviceId)
   }
 }
 
@@ -61,6 +65,12 @@ const actions = {
       }
     }
 
+    return res
+  },
+
+  async deleteDevice({ commit }, deviceId) {
+    const res = await this.$axios.$delete(`/device/${deviceId}`)
+    commit('DELETE_DEVICE', deviceId)
     return res
   }
 }

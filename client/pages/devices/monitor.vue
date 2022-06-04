@@ -7,7 +7,7 @@
       v-if="['arduino_uno', 'openbci_cython'].includes(deviceId)"
       id="graph"
       style="width: 100%;"
-      :style="{height: channelsCount * 60 + 'px'}">
+      :style="{height: Math.max(channelsCount * 60, 500) + 'px'}">
     </div>
     <img
       v-else
@@ -30,8 +30,8 @@ export default {
       sseUrl: '',
       sse: null,
 
-      channelsCount: 16,
-      samplingRate: 250,
+      channelsCount: 1,
+      samplingRate: 330,
 
       traces: [],
       fps: 30,

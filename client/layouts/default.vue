@@ -10,14 +10,9 @@
         <b-navbar-item tag="router-link" :to="{ path: '/researches' }">
           Исследования
         </b-navbar-item>
-        <b-navbar-dropdown label="Устройства">
-          <b-navbar-item tag="router-link" :to="{ path: '/devices/camera' }">
-            Камера
-          </b-navbar-item>
-          <b-navbar-item tag="router-link" :to="{ path: '/devices/eeg' }">
-            EEG
-          </b-navbar-item>
-        </b-navbar-dropdown>
+        <b-navbar-item tag="router-link" :to="{ path: '/devices' }">
+          Устройства
+        </b-navbar-item>
         <b-navbar-item href="#">
           Настройки
         </b-navbar-item>
@@ -108,6 +103,7 @@ export default {
   color: white;
   display: flex;
   justify-content: space-between;
+  z-index: 100;
 }
 
 .ring-container {

@@ -2,6 +2,6 @@ import createMultiTabState from 'vuex-multi-tab-state'
 
 export default ({ store }) => {
   createMultiTabState({
-    statesPaths: ['device', 'record']
+    statesPaths: ['device.startedDevices', 'record']
   })(store)
 }

@@ -39,6 +39,10 @@ def get_device_api(device_manager):
 
         return jsonify(True)
 
+    @router.route('/device/<device_id>', methods=['DELETE'])
+    def delete_device(device_id):
+        device_service.delete_device(device_id)
+
     @router.route('/device/stop', methods=['POST'])
     def stop_device():
         try:
