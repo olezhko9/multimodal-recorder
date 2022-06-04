@@ -18,6 +18,10 @@ const mutations = {
     state.devices = data
   },
 
+  SET_STARTED_DEVICES(state, devices) {
+    state.startedDevices = devices
+  },
+
   ADD_STARTED_DEVICE(state, deviceId) {
     if (!state.startedDevices.includes(deviceId))
       state.startedDevices.push(deviceId)
