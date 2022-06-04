@@ -8,6 +8,7 @@ class Device(ABC, mp.Process):
         self.options = options
         self.is_stopped = mp.Event()
         self.buffer = mp.Queue()
+        self.modality = ''
 
     @abstractmethod
     def start(self):

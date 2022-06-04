@@ -17,6 +17,7 @@ class Camera(Device):
         self.fps = options.get('fps') or Camera.default_fps
         self.last_frame = None
         self.frame_number = 0
+        self.modality = 'visual/image'
 
     def start(self):
         logging.info("Camera start")

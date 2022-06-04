@@ -9,6 +9,7 @@ class Tobii(Device):
     def __init__(self, options):
         super().__init__(options)
         self.eye_tracker = None
+        self.modality = 'positional/2d'
 
     def start(self):
         super(Tobii, self).start()

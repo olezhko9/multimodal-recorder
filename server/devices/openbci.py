@@ -22,6 +22,7 @@ class OpenBCIBoard(Device):
             self.board_id = BoardIds.SYNTHETIC_BOARD.value
 
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
+        self.modality = 'serial/eeg'
 
     def start(self):
         self.input_params = BrainFlowInputParams()

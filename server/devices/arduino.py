@@ -13,6 +13,7 @@ class ArduinoUNO(Device):
         self.board = None
         self.port = options.get('port') or ArduinoUNO.default_port
         self.baudrate = options.get('baudrate') or ArduinoUNO.default_baudrate
+        self.modality = 'serial/ecg'
 
     def start(self):
         super(ArduinoUNO, self).start()
@@ -40,7 +41,7 @@ class ArduinoUNO(Device):
                 ]
                 i += 1
 
-                self.buffer.put((board_data, False))
+                self.buffer.put((board_data, True))
             except UnicodeDecodeError:
                 pass
             except ValueError:
