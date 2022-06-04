@@ -18,12 +18,8 @@ def get_record_api(device_manager, record_manager):
             record_dir_name = record_service.get_record_dir(record['_id'])
             record['directory'] = record_dir_name
 
-            fs_json = fs.get_directory_tree(record_dir_name)
-            record['tree'] = fs_json
-
             notebooks_dir = config.get('notebooks_dir', None)
             record['notebooks_directory'] = join(notebooks_dir, 'record_' + str(record['_id']))
-
 
         return jsonify(records)
 

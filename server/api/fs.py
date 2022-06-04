@@ -18,4 +18,10 @@ def get_api():
         res = fs.delete_directory(params.get('directory', None))
         return jsonify(res)
 
+    @router.route('/fs/directory/tree', methods=['POST'])
+    def fs_tree():
+        params = request.json
+        tree = fs.get_directory_tree(params.get('directory'))
+        return jsonify(tree)
+
     return router

@@ -17,6 +17,15 @@ const mutations = {
   REMOVE_RECORD(state, recordId) {
     state.researchRecords = state.researchRecords.filter(r => r._id !== recordId)
   },
+
+  SET_DIRECTORY_TREE(state, { recordId, tree }) {
+    state.researchRecords = state.researchRecords.map(record => {
+      if (record._id === recordId) {
+        return { ...record, tree }
+      }
+      return record
+    })
+  }
 }
 
 const actions = {

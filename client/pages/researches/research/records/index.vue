@@ -28,7 +28,8 @@
       :loading="isLoading"
       detailed
       detail-key="_id"
-      how-detail-icon>
+      how-detail-icon
+      @details-open="onRecordDetailsClick">
       <b-table-column field="id" label="ID" v-slot="props">
         {{ props.row._id }}
       </b-table-column>
@@ -113,7 +114,7 @@
 </template>
 
 <script>
-import { mapActions, mapState, mapGetters } from "vuex"
+import { mapActions, mapState, mapGetters, mapMutations } from "vuex"
 import { notifyAfter } from "@/modules/notification-decorators"
 import FileExplorer from "@/components/FileExplorer"
 
@@ -195,12 +196,27 @@ export default {
       'getNotebooks',
       'runNotebook',
     ]),
+    ...mapMutations('record', {
+      setDirectoryTree: 'SET_DIRECTORY_TREE'
+    }),
 
     @notifyAfter('Открыто')
     async openDirectory(directory) {
       return this.$axios.$post('/fs/directory/open', {
         directory
       })
+    },
+
+    async onRecordDetailsClick(record) {
+      if (!record.tree) {
+        const tree = await this.$axios.$post('/fs/directory/tree', {
+          directory: record.directory
+        })
+        this.setDirectoryTree({
+          recordId: record._id,
+          tree,
+        })
+      }
     },
 
     @notifyAfter('Успешно')

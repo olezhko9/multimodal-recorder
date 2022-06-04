@@ -96,6 +96,12 @@ export default {
     }),
   },
 
+  watch: {
+    tree(newTree) {
+      this.fsTree = newTree
+    }
+  },
+
   mounted() {
   },
 
