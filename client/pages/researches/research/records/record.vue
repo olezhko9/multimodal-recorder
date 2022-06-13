@@ -89,12 +89,19 @@
         Запустите все устройства, чтобы иметь возможность начать запись
       </b-message>
     </section>
-    <section v-else-if="frameSrc">
+    <section
+      v-else-if="frameSrc"
+      class="box research-frame"
+      :class="{'research-frame__fullscreen': isFrameFullscreen}">
+      <b-icon
+        :icon="isFrameFullscreen ? 'fullscreen-exit' : 'fullscreen'"
+        size="is-medium"
+        @click.native="toggleFrameFullscreen">
+      </b-icon>
       <iframe
         ref="frame"
         :src="frameSrc"
         frameborder="0"
-        class="box"
         @load="onFrameLoaded">
       </iframe>
     </section>
@@ -150,6 +157,7 @@ export default {
 
       frameSrc: '',
       frameLoaded: false,
+      isFrameFullscreen: false
     }
   },
 
@@ -255,6 +263,10 @@ export default {
         + '?rand=' + Math.round(Math.random() * 10000000) // to prevent caching
     },
 
+    toggleFrameFullscreen() {
+      this.isFrameFullscreen = !this.isFrameFullscreen
+    },
+
     @notifyAfter('Запись начата')
     async onStartRecordClick() {
       if (this.research.frame) this.loadFrame()
@@ -282,10 +294,28 @@ export default {
 }
 </script>
 
-<style lang="css" scoped>
-  iframe {
-    width: 100%;
-    min-height: 500px;
-    padding: 0;
+<style lang="scss" scoped>
+iframe {
+  width: 100%;
+  min-height: 410px;
+  height: 100%;
+  padding: 0;
+}
+
+.research-frame {
+  .icon {
+    position: absolute;
+    left: 3rem;
+    cursor: pointer;
   }
+}
+
+.research-frame__fullscreen {
+  position: fixed;
+  top: 52px; // высота navbar
+  left: 0;
+  z-index: 9;
+  width: 100vw;
+  height: calc(100% - 52px - 30px); // минус высота navbar и statusbar
+}
 </style>
