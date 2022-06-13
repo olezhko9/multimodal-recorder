@@ -34,8 +34,15 @@
                 Открыть в проводнике
               </b-dropdown-item>
               <b-dropdown-item
+                v-if="file.type === 'directory'"
                 class="context-menu__item"
-                @click="openNotebooksModal(file.path)">
+                @click="runPipeline(file.path, file.name)">
+                <b-icon icon="folder-cog"></b-icon>
+                Первичная обработка
+              </b-dropdown-item>
+              <b-dropdown-item
+                class="context-menu__item"
+                @click="openNotebooksModal(file.path, file.name)">
                 <b-icon icon="file-code"></b-icon>
                 Запустить Notebook
               </b-dropdown-item>
@@ -67,6 +74,7 @@
 <script>
 import { notifyAfter } from "@/modules/notification-decorators"
 import NotebooksModal from "@/components/NotebooksModal"
+import PipelineModal from "@/components/PipelineModal"
 import { mapState } from "vuex"
 
 export default {
@@ -133,7 +141,7 @@ export default {
       })
     },
 
-    openNotebooksModal(dataPath) {
+    openNotebooksModal(dataPath, filename) {
       this.$buefy.modal.open({
         component: NotebooksModal,
         parent: this,
@@ -144,6 +152,23 @@ export default {
             this.$emit('click:notebook', {
               notebook,
               dataPath,
+            })
+          }
+        }
+      })
+    },
+
+    runPipeline(dataPath, filename) {
+      this.$buefy.modal.open({
+        component: PipelineModal,
+        parent: this,
+        hasModalCard: true,
+        props: {
+          onSave: (pipeline) => {
+            this.$emit('click:pipeline', {
+              pipeline,
+              dataPath,
+              filename
             })
           }
         }

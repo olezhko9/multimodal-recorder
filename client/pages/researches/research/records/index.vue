@@ -64,7 +64,9 @@
         <file-explorer
           :tree="props.row.tree"
           :modalities="props.row.device_modality_dict"
-          @click:notebook="onNotebookRunClick($event, props.row._id)"/>
+          @click:notebook="onNotebookRunClick($event, props.row)"
+          @click:pipeline="onPipelineRunClick($event, props.row)"
+        />
       </template>
 
       <template #empty>
@@ -148,6 +150,9 @@ export default {
     ...mapState('notebook', {
       notebooks: state => state.notebooks,
     }),
+    ...mapState('pipeline', {
+      pipelineMethods: state => state.allMethods,
+    }),
     ...mapGetters('research', [
       'researchById'
     ]),
@@ -171,6 +176,7 @@ export default {
       !this.researches.length && await this.getResearches()
       !this.subjects.length && await this.getSubjects({ researchId: this.researchId })
       await this.getResearchRecords({ researchId: this.researchId, subjectId: this.subjectId })
+      !this.pipelineMethods.length && await this.getMethods()
 
       this.research = this.researchById(this.researchId)
       this.subject = this.subjectById(this.subjectId)
@@ -195,6 +201,9 @@ export default {
     ...mapActions('notebook', [
       'getNotebooks',
       'runNotebook',
+    ]),
+    ...mapActions('pipeline', [
+      'getMethods',
     ]),
     ...mapMutations('record', {
       setDirectoryTree: 'SET_DIRECTORY_TREE'
@@ -224,14 +233,24 @@ export default {
       return this.deleteRecord({ recordId: record._id })
     },
 
-    async onNotebookRunClick(notebookParams, recordId) {
+    async onNotebookRunClick(notebookParams, record) {
       try {
         if (notebookParams.notebook) {
-          this.notebookDir = await this.runNotebook({ recordId, ...notebookParams })
+          this.notebookDir = await this.runNotebook({ recordId: record._id, ...notebookParams })
           this.notebookModalActive = true
         }
       } finally {
       }
+    },
+
+    @notifyAfter('Успешно')
+    async onPipelineRunClick(params, record) {
+      return this.$axios.$post('/pipeline/run', {
+        record_id: record._id,
+        pipeline: params.pipeline,
+        device_id: params.filename,
+        data_path: params.dataPath
+      })
     }
   }
 }
