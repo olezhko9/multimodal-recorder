@@ -79,7 +79,6 @@ class DeviceManager(threading.Thread):
                             self._stream_queues[device_id].put(device.format_to_sse(data))
                 except Exception:  # probably device not started
                     traceback.print_exc()
-                    pass
 
     def read_data(self):
         if not self._isStartedOnce:
