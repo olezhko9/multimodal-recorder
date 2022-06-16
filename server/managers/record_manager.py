@@ -1,6 +1,8 @@
 import json
 import threading
 import time
+import wave
+
 import numpy as np
 import utils.flie_system as fs
 
@@ -45,9 +47,14 @@ class RecordManager(threading.Thread):
             meta['modality'] = modality
             meta['device']['device_id'] = device_id
 
-            if not modality.startswith('visual') and not modality.startswith('audio'):
+            if modality.startswith('serial') or modality.startswith('events'):
                 self.files[device_id] = open(f'{self.record_dir}/{device_id}/{device_id}_{now_string}.txt', 'a')
                 self.files[device_id].write(json.dumps(meta, default=str) + '\n')
+            elif modality.startswith('audio'):
+                self.files[device_id] = wave.open(f'{self.record_dir}/{device_id}/{device_id}_{now_string}.wav', 'wb')
+                self.files[device_id].setnchannels(getattr(devices[device_id], 'CHANNELS'))
+                self.files[device_id].setsampwidth(getattr(devices[device_id], 'SAMPLE_WIDTH'))
+                self.files[device_id].setframerate(getattr(devices[device_id], 'RATE'))
 
         self._recording = True
         if not self.is_alive():
@@ -56,6 +63,9 @@ class RecordManager(threading.Thread):
         return device_modality_dict
 
     def stop_record(self):
+        for file in self.files:
+            self.files[file].close()
+
         self._recording = False
         self.record_dir = ''
         self.last_event = None
@@ -63,10 +73,11 @@ class RecordManager(threading.Thread):
 
     def run(self):
         while True:
+            device_id, data = self.data_stream.get()
+
             if not self._recording:
                 continue
 
-            device_id, data = self.data_stream.get()
             modality = self.device_manager.get_device(device_id).modality
             if modality == 'visual/image':
                 name = "frame_" + str(round(time.time() * 1000))
@@ -75,6 +86,8 @@ class RecordManager(threading.Thread):
                 data = np.transpose(data)
                 if self.record_dir:
                     np.savetxt(self.files[device_id], data, delimiter=',', fmt='%f')
+            elif modality == 'audio':
+                self.files[device_id].writeframes(b''.join(data))
             else:
                 print(f'Modality for device {device_id} not defined')
 
