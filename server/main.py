@@ -4,7 +4,7 @@ from mongoengine import connect
 from os.path import isdir, join
 
 from service import device_service
-from api import device_api, research_api, record_api, subject_api, fs_api, notebook_api
+from api import device_api, research_api, record_api, subject_api, fs_api, notebook_api, pipeline_api
 from managers import DeviceManager, RecordManager, SessionManager
 from utils import MongoJsonEncoder
 from config import config
@@ -34,6 +34,7 @@ app.register_blueprint(record_api(device_manager, record_manager))
 app.register_blueprint(subject_api())
 app.register_blueprint(fs_api())
 app.register_blueprint(notebook_api())
+app.register_blueprint(pipeline_api())
 
 
 @app.route('/event', methods=['POST'])
