@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+      * {
+          font-size: 24px;
+          margin: 0;
+      }
+
+      .container {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+      }
+
+      .title {
+          display: block;
+          width: 100%;
+          text-align: center;
+      }
+
+      .slide {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          width: 100%;
+      }
+
+      video {
+          width: 65%;
+      }
+
+      .quiz {
+          display: flex;
+          flex: 1;
+          justify-content: center;
+      }
+
+      p {
+          margin-bottom: 0.5rem;
+      }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"
+          integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <p class="title"><span class="subject-name"></span>выберите испытанную эмоцию при просмотре видео</p>
+  <div class="slide">
+    <video controls autoplay muted>
+      <source src="/emotions/video/fun.mp4" type="video/mp4">
+    </video>
+    <div class="quiz">
+      <fieldset>
+        <legend>Эмоции</legend>
+        <div>
+          <input type="radio" id="joy" name="emotion" value="joy" oninput="onEmotionSelect()">
+          <label for="joy">Радость</label>
+        </div>
+        <div>
+          <input type="radio" id="surprise" name="emotion" value="surprise">
+          <label for="surprise">Удивление</label>
+        </div>
+        <div>
+          <input type="radio" id="disgust" name="emotion" value="disgust">
+          <label for="disgust">Отвращение</label>
+        </div>
+        <div>
+          <input type="radio" id="anger" name="emotion" value="anger">
+          <label for="anger">Злость</label>
+        </div>
+        <div>
+          <input type="radio" id="contempt" name="emotion" value="contempt">
+          <label for="contempt">Презрение</label>
+        </div>
+        <div>
+          <input type="radio" id="fear" name="emotion" value="fear">
+          <label for="fear">Страх</label>
+        </div>
+        <div>
+          <input type="radio" id="sadness" name="emotion" value="sadness">
+          <label for="sadness">Печаль</label>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+<script>
+  const videoFiles = ['fun', 'fear', 'disgust']
+  let currentVideo = 1
+
+  let researchData = null
+  window.addEventListener('message', function (e) {
+    researchData = JSON.parse(e.data);
+    $('.subject-name').text(researchData.subject.info['Имя'] + ', ')
+  });
+
+  const videos = document.querySelectorAll('video')
+  for (let video of videos) {
+    video.addEventListener('timeupdate', function () {
+      let time = video.currentTime
+      axios.post('http://localhost:5000/event', {
+        name: 'timeupdate',
+        data: {
+          video: 'video' + currentVideo,
+          video_time: time,
+        }
+      }).then(response => {
+        console.log(response.data)
+      })
+    })
+  }
+
+  $('input[name="emotion"]').each(function () {
+    $(this).on('input', async function () {
+      const selectedEmotion = $(this).attr('value')
+      axios.post('http://localhost:5000/event', {
+        name: 'emotion_select',
+        data: {
+          video: 'video' + currentVideo,
+          emotion: selectedEmotion,
+        }
+      })
+
+      const videoEl = $('video')[0]
+      videoEl.pause()
+      currentVideo += 1
+      $('video > source')[0].setAttribute('src', `/emotions/video/${videoFiles[currentVideo - 1]}.mp4`)
+      videoEl.load()
+
+      await new Promise(resolve => setTimeout(resolve, 150))
+      $(this).prop('checked', false)
+    })
+  })
+</script>
+</body>
+</html>
