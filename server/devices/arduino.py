@@ -14,6 +14,7 @@ class ArduinoUNO(Device):
         self.port = options.get('port') or ArduinoUNO.default_port
         self.baudrate = options.get('baudrate') or ArduinoUNO.default_baudrate
         self.modality = 'serial/ecg'
+        self.sampling_rate = 330
 
     def start(self):
         super(ArduinoUNO, self).start()

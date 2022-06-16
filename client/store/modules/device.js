@@ -1,6 +1,7 @@
 const state = () => ({
   devices: [],
-  startedDevices: []
+  startedDevices: [],
+  startedDevicesParams: {}
 })
 
 const getters = {
@@ -10,6 +11,10 @@ const getters = {
 
   deviceById: state => deviceId => {
     return state.devices.find(d => d.device_id === deviceId)
+  },
+
+  startedDeviceParams: state => deviceId => {
+    return state.startedDevicesParams[deviceId] || {}
   }
 }
 
@@ -22,9 +27,11 @@ const mutations = {
     state.startedDevices = devices
   },
 
-  ADD_STARTED_DEVICE(state, deviceId) {
-    if (!state.startedDevices.includes(deviceId))
-      state.startedDevices.push(deviceId)
+  ADD_STARTED_DEVICE(state, device) {
+    if (!state.startedDevices.includes(device.device_id)) {
+      state.startedDevices.push(device.device_id)
+      state.startedDevicesParams[device.device_id] = device
+    }
   },
 
   REMOVE_STARTED_DEVICE(state, deviceId) {
@@ -47,10 +54,8 @@ const actions = {
   async startDevice({ commit }, devices) {
     if (!Array.isArray(devices)) devices = [devices]
     const res = await this.$axios.$post('/device/start', devices)
-    if (res === true) {
-      for (let device of devices) {
-        commit('ADD_STARTED_DEVICE', device.device_id)
-      }
+    for (let device of res) {
+      commit('ADD_STARTED_DEVICE', device)
     }
 
     return res

@@ -19,6 +19,7 @@ def get_device_api(device_manager):
             if type(devices) is not list:
                 devices = [devices]
 
+            started_devices = []
             for device in devices:
                 device_id = device['device_id']
 
@@ -30,14 +31,21 @@ def get_device_api(device_manager):
                     for param in device['settings']:
                         device_params[param['name']] = param['value']
 
-                device_manager.add_and_run_device(device_id, device_params)
+                started_device = device_manager.add_and_run_device(device_id, device_params)
                 device_manager.read_data()
+
+                device_result = {
+                    'device_id': device_id,
+                    'options': getattr(started_device, 'options', {}),
+                    'modality': getattr(started_device, 'modality', ''),
+                    'sampling_rate': getattr(started_device, 'sampling_rate', None)
+                }
+                started_devices.append(device_result)
+            return jsonify(started_devices)
         except Exception:
             traceback.print_exc()
             device_manager.stop_and_remove_devices()
             return "Error when trying connect to device", 500
-
-        return jsonify(True)
 
     @router.route('/device/<device_id>', methods=['DELETE'])
     def delete_device(device_id):

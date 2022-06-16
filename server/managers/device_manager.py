@@ -31,6 +31,8 @@ class DeviceManager(threading.Thread):
     def add_and_run_device(self, device_id, device_options):
         self.add_device(device_id, device_options)
         self._devices[device_id].start()
+        
+        return self._devices[device_id]
 
     def stop_device(self, device_id):
         try:
