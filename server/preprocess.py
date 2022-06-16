@@ -7,6 +7,8 @@ import os
 from cv2 import cv2
 from config import config
 
+methods_cache = None
+
 
 def get_module(module_name):
     try:
@@ -16,6 +18,10 @@ def get_module(module_name):
 
 
 def get_allowed_scripts():
+    global methods_cache
+    if methods_cache is not None:
+        return methods_cache
+
     scripts = [name for _, name, _ in pkgutil.iter_modules([config.get('scripts_dir')])]
     allowed_methods = []
     for script in scripts:
@@ -31,7 +37,9 @@ def get_allowed_scripts():
         script_dict = {**script_dict, **script_config}
         allowed_methods.append(script_dict)
 
-    return allowed_methods
+    methods_cache = allowed_methods
+
+    return methods_cache
 
 
 def read_multimodal(path):
