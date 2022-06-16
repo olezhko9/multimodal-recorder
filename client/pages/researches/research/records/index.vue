@@ -29,7 +29,7 @@
       detailed
       detail-key="_id"
       how-detail-icon
-      @details-open="onRecordDetailsClick">
+      @details-open="getDirectoryTree">
       <b-table-column field="id" label="ID" v-slot="props">
         {{ props.row._id }}
       </b-table-column>
@@ -216,21 +216,22 @@ export default {
       })
     },
 
-    async onRecordDetailsClick(record) {
-      if (!record.tree) {
-        const tree = await this.$axios.$post('/fs/directory/tree', {
-          directory: record.directory
-        })
-        this.setDirectoryTree({
-          recordId: record._id,
-          tree,
-        })
-      }
+    async getDirectoryTree(record) {
+      const tree = await this.$axios.$post('/fs/directory/tree', {
+        directory: record.directory
+      })
+      this.setDirectoryTree({
+        recordId: record._id,
+        tree,
+      })
     },
 
     @notifyAfter('Успешно')
     async onRecordDeleteClick(record) {
-      return this.deleteRecord({ recordId: record._id })
+      let res = await this.deleteRecord({ recordId: record._id })
+      await this.getDirectoryTree(record)
+
+      return res
     },
 
     async onNotebookRunClick(notebookParams, record) {
@@ -245,12 +246,16 @@ export default {
 
     @notifyAfter('Успешно')
     async onPipelineRunClick(params, record) {
-      return this.$axios.$post('/pipeline/run', {
+      let res = await this.$axios.$post('/pipeline/run', {
         record_id: record._id,
         pipeline: params.pipeline,
         device_id: params.filename,
         data_path: params.dataPath
       })
+
+      await this.getDirectoryTree(record)
+
+      return res
     }
   }
 }

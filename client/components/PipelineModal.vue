@@ -2,7 +2,7 @@
   <form action="">
     <div class="modal-card">
       <header class="modal-card-head">
-        <p class="modal-card-title">Запустить Jupyter Notebook для выбранных данных</p>
+        <p class="modal-card-title">Настройка pipeline</p>
       </header>
       <section class="modal-card-body">
         <b-field label="Выберите метод" class="mb-5">
