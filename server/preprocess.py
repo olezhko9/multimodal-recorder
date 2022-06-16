@@ -10,7 +10,7 @@ from config import config
 
 def get_module(module_name):
     try:
-        return importlib.import_module(config.get('scripts_dir') + '.' + module_name)
+        return importlib.import_module(config.get('scripts_dir')[2:] + '.' + module_name)
     except ModuleNotFoundError:
         return None
 
