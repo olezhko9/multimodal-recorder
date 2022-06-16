@@ -69,10 +69,15 @@ def get_device_api(device_manager):
         if device is None:
             return 'Invalid device id', 500
 
-        if device_id == 'camera':
+        modality = device.modality
+        device_stream_group = None
+
+        if modality.startswith('visual'):
             mimetype = 'multipart/x-mixed-replace; boundary=frame'
-        elif device_id == 'openbci_cython' or device_id == 'arduino_uno':
+            device_stream_group = 1
+        elif modality.startswith('serial') or modality.startswith('positional') or modality.startswith('events'):
             mimetype = 'text/event-stream'
+            device_stream_group = 2
 
         device_manager.start_stream(device_id)
 
@@ -82,10 +87,10 @@ def get_device_api(device_manager):
                     device_stream = device_manager.get_device_stream(device_id)
                     if device_stream is not None:
                         data = device_stream.get()
-                        if device_id == 'camera':
+                        if device_stream_group == 1:
                             yield (b'--frame\r\n'
                                    b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n')
-                        elif device_id == 'openbci_cython' or device_id == 'arduino_uno':
+                        elif device_stream_group == 2:
                             yield f"event:{'upd'}\ndata:{data}\n\n"
                 except GeneratorExit:
                     print(f'Stop stream for {device_id}')

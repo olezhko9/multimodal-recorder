@@ -71,10 +71,12 @@ class RecordManager(threading.Thread):
             if modality == 'visual/image':
                 name = "frame_" + str(round(time.time() * 1000))
                 cv2.imwrite(f'{self.record_dir}/{device_id}/{name}.jpg', data)
-            elif modality.startswith('serial/'):
+            elif modality.startswith('serial/') or modality.startswith('positional/'):
                 data = np.transpose(data)
                 if self.record_dir:
                     np.savetxt(self.files[device_id], data, delimiter=',', fmt='%f')
+            else:
+                print(f'Modality for device {device_id} not defined')
 
             device_id = 'events'
             if self.last_event is not None:
